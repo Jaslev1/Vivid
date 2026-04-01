@@ -164,16 +164,16 @@
       <div class="prompt-box">
         <div class="prompt-title">Free-form brief</div>
         <div class="prompt-hint">Campaign nuances, seasonal context, competitor positioning, key dates, tone specifics — plain language, no constraints.</div>
-        <textarea id="i-prompt" placeholder="e.g. Launching Miami Q2, luxury fitness, must own authenticity vs Brand X performance. Key event 15 May. Nothing corporate..."></textarea>
+        <textarea id="i-prompt" placeholder="e.g. We launch in Miami in Q2 targeting luxury fitness. Competitor is Brand X — we must own 'authenticity' not 'performance'. A major event on 15 May anchors the campaign. Avoid anything that feels corporate or hard-sell..."></textarea>
       </div>
       <div class="fg">
-        <div class="f"><div class="f-lbl">Brand name</div><input id="i-brand" type="text" placeholder="e.g. Ridgeline Coffee"></div>
-        <div class="f"><div class="f-lbl">Industry</div><input id="i-ind" type="text" placeholder="e.g. Specialty food and beverage"></div>
-        <div class="f fg-full"><div class="f-lbl">Brand positioning / tagline — used verbatim as the strategy headline</div><input id="i-tagline" type="text" placeholder="e.g. The coffee that earns the morning"></div>
-        <div class="f fg-full"><div class="f-lbl">Brand description</div><textarea id="i-desc" placeholder="What does it do, who does it serve, what makes it genuinely different?"></textarea></div>
+        <div class="f"><div class="f-lbl">Brand name</div><input id="i-brand" type="text" placeholder="Your brand or company name"></div>
+        <div class="f"><div class="f-lbl">Industry</div><input id="i-ind" type="text" placeholder="e.g. Personal development, SaaS, F&amp;B"></div>
+        <div class="f fg-full"><div class="f-lbl">Brand positioning / tagline <span class="f-lbl-note">(used verbatim as the strategy headline)</span></div><input id="i-tagline" type="text" placeholder="e.g. Know who you are, maximise your opportunities"></div>
+        <div class="f fg-full"><div class="f-lbl">Brand description</div><textarea id="i-desc" placeholder="Describe what the brand does, its personality, unique selling points..."></textarea></div>
         <div class="f fg-full"><div class="f-lbl">Campaign objective</div>
           <select id="i-obj">
-            <option value="">Select objective...</option>
+            <option value="">Select an objective</option>
             <option>Build brand awareness in a new market</option>
             <option>Drive trial and first purchase</option>
             <option>Grow and retain existing customers</option>
@@ -183,14 +183,14 @@
             <option>Reposition brand or enter new segment</option>
           </select>
         </div>
-        <div class="f fg-full"><div class="f-lbl">Target audience</div><textarea id="i-aud" placeholder="Demographics, psychographics, pain points, media habits, what they value and distrust..." style="min-height:60px"></textarea></div>
+        <div class="f fg-full"><div class="f-lbl">Target audience</div><textarea id="i-aud" placeholder="e.g. B2C. All adults. But 18-35, female bias. Urban. Reflective, self-aware." style="min-height:80px"></textarea></div>
         <div class="f fg-full"><div class="f-lbl">Monthly budget (USD)</div>
           <div class="brow">
             <input type="range" id="i-bud" min="2000" max="50000" step="500" value="10000" oninput="gi('i-budv').textContent='$'+parseInt(this.value).toLocaleString();enGen()">
             <div class="bnum" id="i-budv">$10,000</div>
           </div>
         </div>
-        <div class="f fg-full"><div class="f-lbl">Brand voice</div><input id="i-tone" type="text" placeholder="e.g. Confident, warm, direct. Never corporate or jargon-heavy."></div>
+        <div class="f fg-full"><div class="f-lbl">Brand voice</div><input id="i-tone" type="text" placeholder="e.g. Cheerful, helpful, insightful"></div>
         <div class="f fg-full"><div class="f-lbl">Active channels</div>
           <div class="cpills">
             <div class="cpill on" onclick="this.classList.toggle('on');enGen()">Instagram</div>
