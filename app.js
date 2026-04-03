@@ -1,3 +1,5 @@
+/* ── Vivid Inc. MarqueAI — app.js ── */
+
 const ASSETS=[
   {n:'Feed post — square',  d:'1080×1080',t:'social', bg:'#F4A26B',tc:'#1A1A2E',s:'IG Feed'},
   {n:'Story / Reel cover',  d:'1080×1920',t:'social', bg:'#6B3FA0',tc:'#fff',   s:'IG Story'},
@@ -14,30 +16,30 @@ const ASSETS=[
   {n:'Half page ad',        d:'300×600',  t:'display',bg:'#6B3FA0',tc:'#fff',   s:'Half Page'},
   {n:'Skyscraper',          d:'160×600',  t:'display',bg:'#1E1B3A',tc:'#F4A26B',s:'Sky'},
 ];
-
 const WL=['W1','W2','W3','W4','W5','W6','W7','W8'];
 const CE={
-  1:[{t:'ig',x:'Launch reel'}],2:[{t:'li',x:'Founder essay'}],3:[{t:'em',x:'Welcome email 1'}],4:[{t:'ig',x:'Brand values'}],5:[{t:'bl',x:'Blog: industry insight'}],
+  1:[{t:'ig',x:'Launch reel'}],2:[{t:'li',x:'Founder essay'}],3:[{t:'em',x:'Welcome email 1'}],4:[{t:'ig',x:'Brand story post'}],5:[{t:'bl',x:'Blog: industry insight'}],
   7:[{t:'ig',x:'Behind the scenes'}],8:[{t:'li',x:'Thought leadership'}],9:[{t:'ig',x:'Product spotlight'}],10:[{t:'em',x:'Nurture email 2'}],11:[{t:'ig',x:'Customer story'}],12:[{t:'bl',x:'Blog: how-to'}],
   14:[{t:'ig',x:'Educational carousel'}],15:[{t:'li',x:'Case study'}],16:[{t:'em',x:'Mid-campaign offer'}],17:[{t:'ig',x:'UGC feature'}],18:[{t:'bl',x:'Blog: data take'}],19:[{t:'ig',x:'Q+A story'}],
-  21:[{t:'li',x:'Industry data post'}],22:[{t:'ig',x:'Testimonial'}],23:[{t:'em',x:'Retargeting email'}],24:[{t:'ig',x:'Product comparison'}],25:[{t:'bl',x:'Blog: roundup'}],26:[{t:'ig',x:'W4 recap reel'}],
-  28:[{t:'li',x:'Partner spotlight'}],29:[{t:'ig',x:'Social proof'}],30:[{t:'em',x:'Conversion email'}],31:[{t:'ig',x:'New series launch'}],32:[{t:'bl',x:'Blog: interview'}],33:[{t:'ig',x:'Poll story'}],
+  21:[{t:'li',x:'Industry data'}],22:[{t:'ig',x:'Testimonial'}],23:[{t:'em',x:'Retargeting email'}],24:[{t:'ig',x:'Product comparison'}],25:[{t:'bl',x:'Blog: roundup'}],26:[{t:'ig',x:'W4 recap reel'}],
+  28:[{t:'li',x:'Partner spotlight'}],29:[{t:'ig',x:'Social proof'}],30:[{t:'em',x:'Conversion email'}],31:[{t:'ig',x:'New series launch'}],32:[{t:'bl',x:'Blog: expert interview'}],33:[{t:'ig',x:'Poll story'}],
   35:[{t:'li',x:'Results reflection'}],36:[{t:'ig',x:'Community spotlight'}],37:[{t:'em',x:'Newsletter'}],38:[{t:'ig',x:'Behind production'}],39:[{t:'bl',x:'Blog: use cases'}],40:[{t:'ig',x:'W6 recap reel'}],
   42:[{t:'li',x:'Strategic forecast'}],43:[{t:'ig',x:'Urgency post'}],44:[{t:'em',x:'Last chance email'}],45:[{t:'ig',x:'Closing story'}],46:[{t:'bl',x:'Blog: learnings'}],47:[{t:'ig',x:'Results post'}],
-  49:[{t:'li',x:'Campaign wrap'}],50:[{t:'ig',x:'Thank you reel'}],51:[{t:'em',x:'Retention email'}],52:[{t:'ig',x:"What's next teaser"}],53:[{t:'bl',x:'Blog: retrospective'}],54:[{t:'ig',x:'Community thanks'}],56:[{t:'li',x:'Final results post'}],
+  49:[{t:'li',x:'Campaign wrap'}],50:[{t:'ig',x:'Thank you reel'}],51:[{t:'em',x:'Retention email'}],52:[{t:'ig',x:"What's next teaser"}],53:[{t:'bl',x:'Blog: retrospective'}],54:[{t:'ig',x:'Community thanks'}],56:[{t:'li',x:'Final results'}],
 };
 const TM={ig:'Instagram',li:'LinkedIn',em:'Email',bl:'Blog'};
 const CM={ig:'ev-ig',li:'ev-li',em:'ev-em',bl:'ev-bl'};
 const AC=['#C96800','#6B3FA0','#F4A26B','#9B6B8A','#3D3D8F'];
-
 let atf='all', lb='Your Brand', dff=[], isGen=false;
+
 function gi(id){return document.getElementById(id)}
 
 /* ── ROUTING ── */
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
-  gi('page-'+id).classList.add('active');
+  const pg=gi('page-'+id);
+  if(pg)pg.classList.add('active');
   const nl=document.querySelector(`[data-page="${id}"]`);
   if(nl)nl.classList.add('active');
   window.scrollTo(0,0);
@@ -46,7 +48,7 @@ function goHome()    {showPage('home')}
 function goSetup()   {showPage('setup');    setSB('setup')}
 function goStrategy(){showPage('strategy'); setSB('strategy')}
 function goContent() {showPage('content');  setSB('content')}
-function goAssets()  {showPage('assets');   setSB('assets'); bAssets()} /* CRITICAL: always rebuild assets on nav */
+function goAssets()  {showPage('assets');   setSB('assets'); bAssets()}
 function goPrivacy() {showPage('privacy')}
 function goTerms()   {showPage('terms')}
 
@@ -60,6 +62,34 @@ function sideNav(id){
   else if(id==='strategy') goStrategy();
   else if(id==='content')  goContent();
   else if(id==='assets')   goAssets();
+}
+
+/* ── PERSIST form data in sessionStorage ── */
+const FIELDS=['i-brand','i-ind','i-desc','i-obj','i-aud','i-tone','i-bb','i-tagline','i-prompt','i-web'];
+function saveForm(){
+  const data={};
+  FIELDS.forEach(id=>{const el=gi(id);if(el)data[id]=el.value});
+  data['i-bud']=gi('i-bud')?gi('i-bud').value:'5000';
+  data['channels']=Array.from(document.querySelectorAll('.cpill.on')).map(e=>e.textContent);
+  try{sessionStorage.setItem('vivid-form',JSON.stringify(data))}catch(e){}
+}
+function loadForm(){
+  try{
+    const raw=sessionStorage.getItem('vivid-form');
+    if(!raw)return;
+    const data=JSON.parse(raw);
+    FIELDS.forEach(id=>{const el=gi(id);if(el&&data[id]!==undefined)el.value=data[id]});
+    if(data['i-bud']){
+      const s=gi('i-bud');if(s)s.value=data['i-bud'];
+      const v=parseInt(data['i-bud'])||5000;
+      const d=gi('i-budv');if(d)d.textContent='$'+v.toLocaleString();
+    }
+    if(data['channels']){
+      document.querySelectorAll('.cpill').forEach(c=>{
+        c.classList.toggle('on',data['channels'].includes(c.textContent));
+      });
+    }
+  }catch(e){}
 }
 
 /* ── INPUTS ── */
@@ -84,11 +114,12 @@ function enGen(){
   if(!b)return;
   b.disabled=false;
   b.innerHTML=isGen?'Regenerate &#9889;':'Start engine &#9889;';
+  saveForm();
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
-  ['i-brand','i-ind','i-desc','i-obj','i-aud','i-tone','i-bb','i-tagline','i-prompt']
-    .forEach(id=>{const el=gi(id);if(el)el.addEventListener('input',enGen)});
+  loadForm();
+  FIELDS.forEach(id=>{const el=gi(id);if(el)el.addEventListener('input',enGen)});
   const bsl=gi('i-bud');
   if(bsl)bsl.addEventListener('input',()=>{
     const v=parseInt(bsl.value);
@@ -96,11 +127,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     enGen();
   });
   document.querySelectorAll('.cpill').forEach(c=>c.addEventListener('click',()=>setTimeout(enGen,10)));
-
-  /* Render assets immediately — they show on any visit to Assets page */
   bAssets();
   bCal();
-
   const dz=gi('dz'),di=gi('di');
   if(dz&&di){
     dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dg')});
@@ -118,10 +146,7 @@ function sUp(inp,sid){
 }
 function aF(files){Array.from(files).forEach(f=>{if(!dff.includes(f.name))dff.push(f.name)});rF();enGen()}
 function rmF(n){dff=dff.filter(x=>x!==n);rF()}
-function rF(){
-  const el=gi('df');
-  if(el)el.innerHTML=dff.map(n=>`<span class="drop-tag">${n}<span class="drop-x" onclick="rmF('${n.replace(/'/g,"\\'")}')">&#xD7;</span></span>`).join('');
-}
+function rF(){const el=gi('df');if(el)el.innerHTML=dff.map(n=>`<span class="drop-tag">${n}<span class="drop-x" onclick="rmF('${n.replace(/'/g,"\\'")}')">&#xD7;</span></span>`).join('')}
 
 /* ── GENERATE ── */
 async function generate(){
@@ -129,10 +154,9 @@ async function generate(){
   if(!inp.brand||inp.brand==='Your Brand'){alert('Please enter a brand name.');return}
   lb=inp.brand;
   const bb=gi('bar-brand');if(bb)bb.innerHTML=`<strong>${inp.brand}</strong>`;
-  const b=gi('gen-btn');
-  b.disabled=true;b.innerHTML='Generating...';
+  const b=gi('gen-btn');b.disabled=true;b.innerHTML='Generating...';
   isGen=true;
-  bAssets(); /* stamp brand on assets immediately */
+  bAssets();
   goStrategy();
   await bStrat(inp);
   bCal();
@@ -145,83 +169,71 @@ async function bStrat(inp){
   si.innerHTML=`<div class="inner-content"><div class="loading"><div class="spin"></div><div class="load-txt">Building your strategy...</div><div class="load-step" id="ls">Analysing brand inputs</div></div></div>`;
   const steps=['Analysing brand inputs','Setting campaign objectives','Mapping channel mix','Allocating budget','Drafting 8-week phases','Writing key messages'];
   let s=0;const iv=setInterval(()=>{s++;const el=gi('ls');if(el&&s<steps.length)el.textContent=steps[s]},900);
+  const tN=inp.tagline?`\nCRITICAL — use this exact tagline verbatim as "headline": "${inp.tagline}"`:'' ;
+  const pN=inp.prompt?`\nClient brief (prioritise this): ${inp.prompt}`:'';
 
-  const hasDesc = inp.desc && inp.desc.length > 10;
-  const hasAud  = inp.aud  && inp.aud.length  > 5;
-  const tN=inp.tagline?`\nCRITICAL — use this exact tagline verbatim as the "headline" field: "${inp.tagline}"`:'';
-  const pN=inp.prompt?`\nDirect client brief (treat as primary input): ${inp.prompt}`:'';
+  const prompt=`You are a senior marketing strategist. Produce a real, specific, commercially usable strategy — not template language.
 
-  const prompt=`You are a senior marketing strategist. This is a real brief — produce a real, specific, commercially usable strategy. Generic filler language will make this output worthless.
+BRAND:
+Name: ${inp.brand}
+Industry: ${inp.ind}
+Description: ${inp.desc||'Not specified'}
+Objective: ${inp.obj}
+Audience: ${inp.aud||'Not specified'}
+Budget: ${inp.bud}/month
+Voice: ${inp.tone}
+Channels: ${inp.ch.join(', ')}
+Notes: ${inp.bb||'None'}${tN}${pN}
 
-BRAND INFORMATION:
-- Brand name: ${inp.brand}
-- Industry: ${inp.ind}
-- Description: ${inp.desc||'Not provided — infer from industry and objective'}
-- Campaign objective: ${inp.obj}
-- Target audience: ${inp.aud||'Not provided — infer from industry'}
-- Monthly budget: ${inp.bud}
-- Brand voice: ${inp.tone}
-- Active channels: ${inp.ch.join(', ')}
-- Brand notes: ${inp.bb||'None'}${tN}${pN}
+STRICT OUTPUT RULES:
 
-ABSOLUTE RULES — breaking any makes the output unusable:
+headline: ${inp.tagline?`Copy EXACTLY: "${inp.tagline}"`:`Sharp, ownable, max 10 words. Must reflect what ${inp.brand} actually does. No templates, no "the [industry] brand for [audience]".`}
 
-HEADLINE: ${inp.tagline?`Copy this EXACTLY: "${inp.tagline}"`:`Write a positioning line max 12 words specific only to ${inp.brand}. It must reflect what ${inp.brand} actually does differently. Never write "the [industry] brand your audience asked for" or any template.`}
+summary: 2 sentences max. Sentence 1: what market gap ${inp.brand} is entering and why this moment. Sentence 2: what the conversion strategy is. Be concrete — name the mechanism, not the intention.
 
-SUMMARY: 2-3 sentences. State: (1) what market tension ${inp.brand} is entering, (2) why this channel mix makes sense for THIS brand and audience, (3) what the conversion mechanism is. Be specific to the brand inputs above.
+phases: 4 phases, each with 2–3 SHORT, SPECIFIC tactics. A tactic is a concrete action: "3-post Instagram carousel on [specific topic]", "A/B test two subject lines against the same offer", "retarget cart abandoners with a 24-hour discount code". NOT "create engaging content" or "build awareness through channels".
 
-PHASES: Each description must name 2+ real, specific tactics with format/platform/detail. Instead of "create engaging content" write "publish a 3-part LinkedIn essay series on [specific topic derived from brand description], run a 6-post Instagram carousel explaining [specific differentiator]". Reference ${inp.brand} by name in at least one phase.
+messages: 3 key messages. Each must be a specific claim ONLY ${inp.brand} can make — rooted in what the brand does (desc), who it serves (audience), and what it proves. NEVER write "we put customers first", "quality you can trust", or any generic phrase. If description is thin, use industry context to write something specific and bold.
 
-KEY MESSAGES: These must be claims that ONLY ${inp.brand} can make. They must reference what the brand actually does (from description), who the audience actually is, and what differentiates the brand. If the description is thin, use the industry and audience to construct plausible-but-specific claims. NEVER write "we put customers first", "quality you can trust", "built for you" or any cliché.
+kpis: realistic projected ranges for ${inp.bud}/month.
 
-KPIS: Give realistic projected ranges for ${inp.bud}/month across ${inp.ch.join(', ')}.
-
-Return ONLY valid JSON, no markdown, no extra text:
+Return ONLY valid JSON:
 {"headline":"...","summary":"...","phases":[{"week":"Weeks 1–2","name":"...","desc":"..."},{"week":"Weeks 3–4","name":"...","desc":"..."},{"week":"Weeks 5–6","name":"...","desc":"..."},{"week":"Weeks 7–8","name":"...","desc":"..."}],"alloc":[{"lbl":"Paid social","pct":35},{"lbl":"Content creation","pct":25},{"lbl":"Email / CRM","pct":15},{"lbl":"Influencer / seeding","pct":15},{"lbl":"Contingency","pct":10}],"kpis":[{"lbl":"Projected monthly reach","val":"40–60K"},{"lbl":"Projected engagement","val":"3.5–5.5%"},{"lbl":"Projected email open","val":"24–32%"}],"messages":["...","...","..."]}`;
 
   let data=null;
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1800,messages:[{role:'user',content:prompt}]})
-    });
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1800,messages:[{role:'user',content:prompt}]})});
     if(!r.ok)throw new Error(`HTTP ${r.status}`);
-    const res=await r.json();
-    clearInterval(iv);
+    const res=await r.json();clearInterval(iv);
     if(res.error)throw new Error(res.error.message);
     const txt=res.content.map(c=>c.text||'').join('');
     const match=txt.match(/\{[\s\S]*\}/);
     if(!match)throw new Error('No JSON');
     data=JSON.parse(match[0]);
-  }catch(e){
-    clearInterval(iv);
-    console.warn('API fallback:',e.message);
-    data=fb(inp);
-  }
+  }catch(e){clearInterval(iv);console.warn('API fallback:',e.message);data=fb(inp)}
   rStrat(data,inp);
 }
 
 function fb(inp){
-  const br=inp.brand, ind=inp.ind, aud=inp.aud||'your target audience';
-  const audShort=aud.split(',')[0].trim()||'your audience';
+  const br=inp.brand,ind=inp.ind,aud=inp.aud||'your target customers';
+  const audShort=aud.split(',')[0].trim();
   const desc=inp.desc||`a ${ind} brand`;
-  const descLine=desc.split('.')[0].toLowerCase().replace(/^we /,'').replace(/^it /,'');
+  const d=desc.split('.')[0].toLowerCase().replace(/^we /,'').replace(/^it /,'').replace(/^they /,'');
   return{
-    headline:inp.tagline||`${br}: ${ind} built around what ${audShort} actually needs`,
-    summary:`${br} enters a ${ind} market where most competitors rely on broad claims and undifferentiated positioning. This strategy flips that: every channel touchpoint earns trust through specific, evidence-backed content before asking for conversion. The ${inp.bud}/month budget is allocated to test what resonates with ${audShort}, then scale it.`,
+    headline:inp.tagline||`${br}: the ${ind} choice that actually makes sense`,
+    summary:`${br} is entering a ${ind} market where most competitors rely on broad claims and undifferentiated positioning — this strategy takes the opposite route. Every channel touchpoint earns trust first: authority content before paid amplification, proof before conversion ask, retention mechanics before the next acquisition cycle begins.`,
     phases:[
-      {week:'Weeks 1–2',name:'Credibility and discovery',desc:`Publish a 1,200-word founder perspective on LinkedIn establishing ${br}'s specific category point of view — focused on ${descLine}. Launch a 3-post Instagram carousel breaking down the core insight that separates ${br} from generic ${ind} options. Configure pixel tracking, email capture with a 10%-off incentive, and a 3-email automated welcome series ending with a soft product CTA.`},
-      {week:'Weeks 3–4',name:'Proof and amplification',desc:`Activate paid social (35% of ${inp.bud}) boosting the top-performing organic post to custom and lookalike audiences matching ${audShort} profiles. Publish 2 verified customer testimonials on Instagram Stories with before/after specifics and 1 detailed case study on LinkedIn. A/B test 2 email subject line approaches (benefit-led vs. curiosity-led). Seed 3–5 micro-creators in the ${ind} space under a gifting-plus-brief arrangement.`},
-      {week:'Weeks 5–6',name:'Conversion and urgency',desc:`Scale paid social on the winning creative variant to a wider lookalike pool. Deploy retargeting sequences to all site visitors and email openers from Weeks 1–4. Run a 3-email limited-time offer sequence (launch, urgency, last-chance). Publish a long-form SEO article targeting the primary ${ind} search intent, with a gated resource as lead magnet CTA.`},
-      {week:'Weeks 7–8',name:'Retention and next cycle',desc:`Trigger a referral mechanic for converted customers via a post-purchase email at day 3. Publish the campaign's top-line performance data on LinkedIn to build category authority. Brief 2 new creative concepts (video vs. static) to refresh ad creative before the next cycle. Document CPL, ROAS, and email revenue contribution to set the next campaign's performance baseline.`},
+      {week:'Weeks 1–2',name:'Authority and discovery',desc:`Launch a 3-post Instagram carousel on the core problem ${br} solves — told from the customer's perspective, not the brand's. Publish a 600-word LinkedIn post on the specific insight that made ${br} different from day one. Set up pixel tracking, email capture form with a value incentive, and a 2-email welcome sequence (value, then soft CTA).`},
+      {week:'Weeks 3–4',name:'Proof and paid reach',desc:`Activate paid social (35% of budget) on the best-performing organic post. Publish two customer testimonials on Instagram Stories — specific outcomes, not vague praise. Run a 2-variant email A/B test: benefit-led subject vs. curiosity-led subject, same offer. Brief 2–3 niche creators in the ${ind} space on a product-first gifting arrangement.`},
+      {week:'Weeks 5–6',name:'Conversion and retargeting',desc:`Scale paid social to a broader lookalike audience based on the Week 3–4 winner. Deploy a 3-email limited-time offer sequence to the full list (announce, reminder, last call). Launch a retargeting campaign to site visitors who didn't convert. Publish a blog post targeting the top ${ind} search intent with a gated resource CTA.`},
+      {week:'Weeks 7–8',name:'Retention and next cycle',desc:`Trigger a referral incentive for recent buyers via a post-purchase email at day 3. Post campaign performance highlights on LinkedIn — concrete numbers build category credibility. Brief 2 new ad creative concepts for the next cycle based on what worked. Document CPL, ROAS, and email revenue to set the next campaign's budget and targets.`},
     ],
     alloc:[{lbl:'Paid social',pct:35},{lbl:'Content creation',pct:25},{lbl:'Email / CRM',pct:15},{lbl:'Influencer / seeding',pct:15},{lbl:'Contingency',pct:10}],
     kpis:[{lbl:'Projected monthly reach',val:'40–60K'},{lbl:'Projected engagement',val:'3.5–5.5%'},{lbl:'Projected email open',val:'24–32%'}],
     messages:[
-      `${br} is the only ${ind} brand that ${descLine} — with the published evidence to back it up, not just the claim`,
-      `Designed specifically for ${audShort}: not adapted from a mass-market template, but built from the ground up around what they actually value`,
-      `Where most ${ind} competitors compete on price, ${br} competes on proof — every claim is verifiable, every outcome is measured`,
+      `${br} is the only ${ind} brand that ${d} — and we publish the proof rather than asking you to take our word for it`,
+      `Built for ${audShort} who are tired of ${ind} brands that overpromise: every claim ${br} makes comes with the receipts`,
+      `Where most ${ind} competitors compete on price, ${br} competes on evidence — outcomes you can measure, not promises you have to trust`,
     ],
   };
 }
@@ -229,7 +241,6 @@ function fb(inp){
 function rStrat(s,inp){
   gi('strat-inner').innerHTML=`
   <div class="inner-content">
-    <div class="accent-rule"></div>
     <div class="page-eye">Communications strategy — ${inp.bud}/month</div>
     <div class="strat-hl">${s.headline}</div>
     <div class="strat-sum">${s.summary}</div>
@@ -237,9 +248,9 @@ function rStrat(s,inp){
     <div class="kpi-row">${s.kpis.map((k,i)=>`<div class="kpi kpi-${i}"><div class="kpi-lbl">${k.lbl}</div><div class="kpi-val">${k.val}</div></div>`).join('')}</div>
     <div class="s-hd"><div class="s-title">Campaign phases</div><div class="s-rule"></div><div class="s-tag">8 weeks / 56 days</div></div>
     <div class="phases">${s.phases.map((p,i)=>`<div class="phase"><div class="ph-week">${p.week}</div><div class="ph-line"><div class="ph-node"></div>${i<s.phases.length-1?'<div class="ph-track"></div>':''}</div><div class="ph-body"><div class="ph-name">${p.name}</div><div class="ph-desc">${p.desc}</div></div></div>`).join('')}</div>
-    <div class="s-hd" style="margin-top:32px"><div class="s-title">Budget allocation</div><div class="s-rule"></div><div class="s-tag">${inp.bud}/mo</div></div>
+    <div class="s-hd" style="margin-top:28px"><div class="s-title">Budget allocation</div><div class="s-rule"></div><div class="s-tag">${inp.bud}/mo</div></div>
     <div class="alloc-block"><div class="alloc-title">How the budget is split</div>${s.alloc.map((a,i)=>`<div class="alloc-item"><div class="alloc-lbl">${a.lbl}</div><div class="alloc-track"><div class="alloc-fill" style="width:${a.pct}%;background:${AC[i%5]}"></div></div><div class="alloc-pct">${a.pct}%</div></div>`).join('')}</div>
-    <div class="s-hd" style="margin-top:24px"><div class="s-title">Key messages</div><div class="s-rule"></div></div>
+    <div class="s-hd" style="margin-top:22px"><div class="s-title">Key messages</div><div class="s-rule"></div></div>
     <div class="msgs">${s.messages.map(m=>`<div class="msg"><div class="msg-text">${m}</div></div>`).join('')}</div>
     <div class="action-row">
       <button class="btn-action-cal" onclick="goContent()">View content plan &#8594;</button>
@@ -270,53 +281,59 @@ function bCal(){
 }
 
 function oPost(title,type){
-  /* Scroll post card to top of visible area, not below fold */
+  /* Post draft card renders ABOVE the calendar (post-area is before cal-header in HTML) */
   const pa=gi('post-area');if(!pa)return;
   pa.innerHTML=`<div class="post-card">
     <div class="post-card-hd">
       <div class="post-card-title">Draft: ${title}</div>
       <button class="btn-secondary" onclick="gi('post-area').innerHTML=''">&#xD7; Close</button>
     </div>
-    <p style="font-size:12px;color:var(--hint);margin-bottom:8px">Add any extra context below, then click Generate.</p>
-    <textarea class="post-inp" id="post-ctx" placeholder="e.g. Focus on our spring launch, use a warm tone, include a 15%-off hook..."></textarea>
+    <p style="font-size:12px;color:var(--hint);margin-bottom:6px">Add extra context, then click Generate copy.</p>
+    <textarea class="post-inp" id="post-ctx" placeholder="e.g. Focus on our spring launch pricing. Warm, slightly playful tone. Mention the 50% off offer..."></textarea>
     <div class="post-foot">
       <button class="btn-primary" onclick="gPost('${title.replace(/'/g,"\\'")}','${type}')">Generate copy &#9889;</button>
-      <button class="btn-secondary" id="copy-btn" style="display:none" onclick="navigator.clipboard.writeText(gi('pbt').textContent);this.textContent='Copied!'">Copy text</button>
+      <button class="btn-secondary" id="copy-btn" style="display:none" onclick="copyPost()">Copy text</button>
     </div>
-    <div class="post-body-txt" id="pbt" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)"></div>
+    <div class="post-body-txt" id="pbt" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)"></div>
   </div>`;
-  /* Scroll the new card into view */
-  pa.scrollIntoView({behavior:'smooth',block:'nearest'});
+  pa.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function copyPost(){
+  const pbt=gi('pbt');
+  if(pbt)navigator.clipboard.writeText(pbt.textContent).then(()=>{
+    const cb=gi('copy-btn');if(cb){cb.textContent='Copied!';setTimeout(()=>{cb.textContent='Copy text'},1500)}
+  });
 }
 
 async function gPost(title,type){
   const inp=getI();
   const pbt=gi('pbt');
   const ctx=gi('post-ctx')?gi('post-ctx').value.trim():'';
-  if(pbt){pbt.textContent='Writing...';pbt.style.fontStyle='normal'}
-  const tl={ig:'Instagram post',li:'LinkedIn post',em:'Email newsletter',bl:'Blog post'}[type]||'post';
-  const p=`Write a ${tl} for ${inp.brand||lb} (${inp.ind||'consumer brand'}). 
-Concept: "${title}". 
-Brand voice: ${inp.tone||'engaging and direct'}. 
+  if(pbt){pbt.textContent='Writing...';pbt.style.fontStyle='normal';pbt.style.color='var(--hint)'}
+  const tl={ig:'Instagram post',li:'LinkedIn post',em:'Email newsletter',bl:'Blog post'}[type]||'social post';
+  const p=`Write a ${tl} for ${inp.brand||lb} — a ${inp.ind||'brand'}.
+Concept: "${title}".
+Brand voice: ${inp.tone||'engaging and direct'}.
 Target audience: ${inp.aud||'general consumers'}.
-${ctx?`Additional context: ${ctx}`:''}
-${type==='ig'?'Include 3–5 relevant hashtags at the end.':''}
-${type==='em'?'Start with "Subject:" on the first line, then a blank line, then the email body.':''}
-Return ONLY the post copy. No preamble, no "Here is your post:" intro.`;
+${ctx?`Additional direction: ${ctx}`:''}
+${type==='ig'?'End with 3–5 relevant hashtags on a new line.':''}
+${type==='em'?'First line: "Subject: [subject line]". Then blank line. Then email body.':''}
+Return ONLY the copy. No preamble. No "Here is your post:".`;
   try{
     const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,messages:[{role:'user',content:p}]})});
     const d=await r.json();
     if(d.error)throw new Error(d.error.message);
-    if(pbt)pbt.textContent=d.content.map(c=>c.text||'').join('');
+    if(pbt){pbt.textContent=d.content.map(c=>c.text||'').join('');pbt.style.color='var(--dark)'}
     const cb=gi('copy-btn');if(cb)cb.style.display='';
-  }catch(e){if(pbt)pbt.textContent='Could not generate — please try again.'}
+  }catch(e){if(pbt){pbt.textContent='Could not generate — please try again.';pbt.style.color='var(--hint)'}}
 }
 
 /* ── ASSETS ── */
 function bAssets(){
   const brand=lb!=='Your Brand'?lb:((gi('i-brand')&&gi('i-brand').value.trim())||'Your Brand');
   const g=gi('agrid');
-  if(!g){console.warn('agrid not found');return}
+  if(!g)return;
   const filtered=ASSETS.filter(a=>atf==='all'||a.t===atf);
   g.innerHTML=filtered.map(a=>`
     <div class="acard" data-type="${a.t}" data-name="${a.n.toLowerCase()}">
@@ -333,22 +350,11 @@ function bAssets(){
         </div>
       </div>
     </div>`).join('');
-  console.log(`bAssets rendered ${filtered.length} cards for brand="${brand}"`);
 }
 
 function showSpec(mode,name,dim){
-  if(mode==='resize'){alert(`Resize variants — ${name} (${dim})\n\nIG feed: 1080×1080, 1080×1350\nIG Story/Reel: 1080×1920\nLinkedIn: 1200×627\nX/Twitter: 1200×675\nFacebook feed: 1200×630\nFacebook cover: 820×312\nPinterest: 1000×1500\n\nExport at 2× for retina. Keep content within 80% safe zone.`)}
-  else{alert(`Production spec — ${name}\n\nFormat: PNG-24 (digital) / PDF (print)\nColour: sRGB (screen) / CMYK (print)\nRes: 72 dpi web / 300 dpi print\nSafe zone: 5% inset all sides\nBleed (print): 3mm\nFonts: outline or embed`)}
+  if(mode==='resize')alert(`Resize — ${name} (${dim})\n\nIG: 1080×1080, 1080×1350\nIG Story: 1080×1920\nLinkedIn: 1200×627\nX/Twitter: 1200×675\nFacebook: 1200×630\nPinterest: 1000×1500\n\nExport at 2× for retina.`);
+  else alert(`Spec — ${name}\n\nFormat: PNG-24 (web) / PDF (print)\nColour: sRGB / CMYK\nRes: 72 dpi web / 300 dpi print\nSafe zone: 5% inset\nFonts: outline or embed`);
 }
-
-function fA(q){
-  document.querySelectorAll('.acard').forEach(c=>{
-    c.style.display=(c.dataset.name.includes(q.toLowerCase())&&(atf==='all'||c.dataset.type===atf))?'':'none';
-  });
-}
-function sAT(el,type){
-  document.querySelectorAll('.asset-type-chip').forEach(c=>c.classList.remove('on'));
-  el.classList.add('on');
-  atf=type;
-  bAssets();
-}
+function fA(q){document.querySelectorAll('.acard').forEach(c=>{c.style.display=(c.dataset.name.includes(q.toLowerCase())&&(atf==='all'||c.dataset.type===atf))?'':'none'})}
+function sAT(el,type){document.querySelectorAll('.asset-type-chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');atf=type;bAssets()}
