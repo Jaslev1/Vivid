@@ -1,148 +1,129 @@
-/* ── STATE ── */
-const CE = {};
+/* ── HELPERS ── */
 const gi = id => document.getElementById(id);
 
-/* ── INPUT ── */
-function getI() {
+/* ── INPUT MAPPING ── */
+function getInput() {
   return {
-    brand: gi("i-brand")?.value || "Your Brand",
-    ind: gi("i-ind")?.value || "General",
-    obj: gi("i-obj")?.value || "Grow awareness",
-    aud: gi("i-aud")?.value || "Broad audience",
-    tone: gi("i-tone")?.value || "Sharp"
+    brand: gi("i-brand")?.value || "",
+    ind: gi("i-ind")?.value || "",
+    obj: gi("i-obj")?.value || "",
+    aud: gi("i-aud")?.value || "",
+    tone: gi("i-tone")?.value || ""
   };
 }
 
-/* ── MOCK GENERATOR (NO API REQUIRED) ── */
+/* ── API CALL ── */
 async function generate(type, input) {
-  console.log("GENERATE:", type, input);
+  const res = await fetch("/api/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      type: type,
+      input: input || {}
+    })
+  });
 
-  if (type === "strategy") {
-    return {
-      positioning: `${input.brand} is positioned to ${input.obj.toLowerCase()}.`,
-      audience: input.aud,
-      pillars: ["Authority", "Proof", "Conversion"],
-      messages: [
-        `${input.brand} solves a real problem`,
-        "Clear differentiation",
-        "Immediate value"
-      ]
-    };
-  }
-
-  if (type === "calendar") {
-    return Array.from({ length: 30 }, (_, i) => ({
-      day: i + 1,
-      text: `${input.brand} content ${i + 1}`
-    }));
-  }
-
-  if (type === "copy") {
-    return {
-      headline: `${input.brand}: ${input.obj}`,
-      body: "Strong supporting message",
-      cta: "Learn more"
-    };
-  }
+  return await res.json();
 }
 
 /* ── STRATEGY ── */
-async function renderStrategy() {
-  console.log("CLICK: Strategy");
+async function handleStrategy() {
+  const i = getInput();
 
-  const i = getI();
-  const s = await generate("strategy", i);
+  const data = await generate("strategy", i);
+
+  if (data.error) {
+    gi("out-strategy").innerHTML = `<p>${data.error}</p>`;
+    return;
+  }
 
   gi("out-strategy").innerHTML = `
-    <p><b>Positioning:</b> ${s.positioning}</p>
-    <p><b>Audience:</b> ${s.audience}</p>
-    <p><b>Pillars:</b> ${s.pillars.join(", ")}</p>
-    <p><b>Messages:</b> ${s.messages.join(" | ")}</p>
+    <div><b>Positioning:</b> ${data.positioning}</div>
+    <div><b>Audience:</b> ${data.audience}</div>
+    <div><b>Pillars:</b> ${data.pillars.join(", ")}</div>
+    <div><b>Messages:</b> ${data.messages.join(" | ")}</div>
   `;
 }
 
-/* ── CALENDAR ── */
-async function generateCalendar() {
-  console.log("CLICK: Calendar");
+/* ── CALENDAR STATE ── */
+let calendarData = {};
 
-  const i = getI();
+/* ── CALENDAR ── */
+async function handleCalendar() {
+  const i = getInput();
+
   const data = await generate("calendar", i);
 
+  if (!Array.isArray(data)) return;
+
   data.forEach(d => {
-    CE[d.day] = { text: d.text };
+    calendarData[d.day] = d.text;
   });
 
-  buildCalendar();
+  renderCalendar();
 }
 
-function buildCalendar() {
-  const wrap = gi("calendar");
-  wrap.innerHTML = "";
-
+function renderCalendar() {
   for (let d = 1; d <= 30; d++) {
-    const cell = document.createElement("div");
-    cell.className = "cal-cell";
+    const cell = document.querySelector(`[data-day="${d}"]`);
+    if (!cell) continue;
+
+    const content = calendarData[d] || "";
 
     cell.innerHTML = `
-      <div><b>${d}</b></div>
-      <div>${CE[d]?.text || ""}</div>
+      <div class="day-num">${d}</div>
+      <textarea class="day-text">${content}</textarea>
     `;
 
-    cell.onclick = () => editDay(d);
-    wrap.appendChild(cell);
-  }
-}
+    const textarea = cell.querySelector("textarea");
 
-function editDay(day) {
-  const val = prompt("Edit:", CE[day]?.text || "");
-  if (val !== null) {
-    CE[day] = { text: val };
-    buildCalendar();
+    textarea.addEventListener("input", e => {
+      calendarData[d] = e.target.value;
+    });
   }
 }
 
 /* ── ASSETS ── */
-function renderAsset(text) {
-  const canvas = document.createElement("canvas");
-  canvas.width = 400;
-  canvas.height = 200;
+async function handleAssets() {
+  const i = getInput();
 
-  const ctx = canvas.getContext("2d");
-
-  ctx.fillStyle = "#6B3FA0";
-  ctx.fillRect(0, 0, 400, 200);
-
-  ctx.fillStyle = "#fff";
-  ctx.font = "20px Arial";
-  ctx.textAlign = "center";
-
-  ctx.fillText(text, 200, 100);
-
-  return canvas.toDataURL();
-}
-
-async function buildAssets() {
-  console.log("CLICK: Assets");
-
-  const i = getI();
-  const copy = await generate("copy", i);
+  const data = await generate("copy", i);
 
   const wrap = gi("assets-wrap");
   wrap.innerHTML = "";
 
-  for (let i = 0; i < 3; i++) {
+  if (data.error) {
+    wrap.innerHTML = `<p>${data.error}</p>`;
+    return;
+  }
+
+  for (let x = 0; x < 3; x++) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 400;
+    canvas.height = 200;
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "#6B3FA0";
+    ctx.fillRect(0, 0, 400, 200);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "18px Arial";
+    ctx.textAlign = "center";
+
+    ctx.fillText(data.headline, 200, 90);
+    ctx.fillText(data.cta, 200, 140);
+
     const img = document.createElement("img");
-    img.src = renderAsset(copy.headline);
+    img.src = canvas.toDataURL();
+
     wrap.appendChild(img);
   }
 }
 
-/* ── INIT ── */
-window.onload = () => {
-  buildCalendar();
-};
-
-/* ── EXPOSE FUNCTIONS (CRITICAL) ── */
-window.renderStrategy = renderStrategy;
-window.generateCalendar = generateCalendar;
-window.buildAssets = buildAssets;
+/* ── EVENT BINDING (CRITICAL FIX) ── */
+window.addEventListener("DOMContentLoaded", () => {
+  document.querySelector("button:nth-of-type(1)").addEventListener("click", handleStrategy);
+  document.querySelector("button:nth-of-type(2)").addEventListener("click", handleCalendar);
+  document.querySelector("button:nth-of-type(3)").addEventListener("click", handleAssets);
+});
