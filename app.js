@@ -1,52 +1,74 @@
-
-/* ── Vivid Inc. MarqueAI — refactored app.js ── */
-
-/* ── CORE STATE ── */
+/* ── STATE ── */
 const CE = {};
 const gi = id => document.getElementById(id);
 
-/* ── INPUT MODEL ── */
+/* ── INPUT ── */
 function getI() {
   return {
     brand: gi("i-brand")?.value || "Your Brand",
-    ind: gi("i-ind")?.value || "consumer brand",
-    obj: gi("i-obj")?.value || "Drive awareness",
-    aud: gi("i-aud")?.value || "",
-    tone: gi("i-tone")?.value || "premium, sharp",
-    ch: Array.from(document.querySelectorAll(".cpill.on")).map(e => e.textContent)
+    ind: gi("i-ind")?.value || "General",
+    obj: gi("i-obj")?.value || "Grow awareness",
+    aud: gi("i-aud")?.value || "Broad audience",
+    tone: gi("i-tone")?.value || "Sharp"
   };
 }
 
-/* ── API CALL ── */
+/* ── MOCK GENERATOR (NO API REQUIRED) ── */
 async function generate(type, input) {
-  const res = await fetch("/api/generate", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ type, input })
-  });
+  console.log("GENERATE:", type, input);
 
-  return await res.json();
+  if (type === "strategy") {
+    return {
+      positioning: `${input.brand} is positioned to ${input.obj.toLowerCase()}.`,
+      audience: input.aud,
+      pillars: ["Authority", "Proof", "Conversion"],
+      messages: [
+        `${input.brand} solves a real problem`,
+        "Clear differentiation",
+        "Immediate value"
+      ]
+    };
+  }
+
+  if (type === "calendar") {
+    return Array.from({ length: 30 }, (_, i) => ({
+      day: i + 1,
+      text: `${input.brand} content ${i + 1}`
+    }));
+  }
+
+  if (type === "copy") {
+    return {
+      headline: `${input.brand}: ${input.obj}`,
+      body: "Strong supporting message",
+      cta: "Learn more"
+    };
+  }
 }
 
 /* ── STRATEGY ── */
 async function renderStrategy() {
+  console.log("CLICK: Strategy");
+
   const i = getI();
   const s = await generate("strategy", i);
 
   gi("out-strategy").innerHTML = `
-    <h3>Positioning</h3><p>${s.positioning || ""}</p>
-    <h3>Audience</h3><p>${s.audience || ""}</p>
-    <h3>Pillars</h3><ul>${(s.pillars||[]).map(p=>`<li>${p}</li>`).join("")}</ul>
-    <h3>Messages</h3><ul>${(s.messages||[]).map(m=>`<li>${m}</li>`).join("")}</ul>
+    <p><b>Positioning:</b> ${s.positioning}</p>
+    <p><b>Audience:</b> ${s.audience}</p>
+    <p><b>Pillars:</b> ${s.pillars.join(", ")}</p>
+    <p><b>Messages:</b> ${s.messages.join(" | ")}</p>
   `;
 }
 
 /* ── CALENDAR ── */
 async function generateCalendar() {
+  console.log("CLICK: Calendar");
+
   const i = getI();
   const data = await generate("calendar", i);
 
-  (data || []).forEach(d => {
+  data.forEach(d => {
     CE[d.day] = { text: d.text };
   });
 
@@ -62,7 +84,7 @@ function buildCalendar() {
     cell.className = "cal-cell";
 
     cell.innerHTML = `
-      <div>${d}</div>
+      <div><b>${d}</b></div>
       <div>${CE[d]?.text || ""}</div>
     `;
 
@@ -80,48 +102,47 @@ function editDay(day) {
 }
 
 /* ── ASSETS ── */
-function renderAsset(w, h, bg, color, text) {
+function renderAsset(text) {
   const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
+  canvas.width = 400;
+  canvas.height = 200;
 
   const ctx = canvas.getContext("2d");
 
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "#6B3FA0";
+  ctx.fillRect(0, 0, 400, 200);
 
-  ctx.fillStyle = color;
-  ctx.font = `${Math.floor(w / 10)}px Inter`;
+  ctx.fillStyle = "#fff";
+  ctx.font = "20px Arial";
   ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
 
-  ctx.fillText(text, w / 2, h / 2);
+  ctx.fillText(text, 200, 100);
 
   return canvas.toDataURL();
 }
 
 async function buildAssets() {
+  console.log("CLICK: Assets");
+
   const i = getI();
   const copy = await generate("copy", i);
 
   const wrap = gi("assets-wrap");
   wrap.innerHTML = "";
 
-  const configs = [
-    [1080,1080],
-    [1200,627],
-    [600,300]
-  ];
-
-  configs.forEach(([w,h])=>{
+  for (let i = 0; i < 3; i++) {
     const img = document.createElement("img");
-    img.src = renderAsset(w,h,"#6B3FA0","#fff", copy.headline || i.brand);
-
+    img.src = renderAsset(copy.headline);
     wrap.appendChild(img);
-  });
+  }
 }
 
 /* ── INIT ── */
 window.onload = () => {
   buildCalendar();
 };
+
+/* ── EXPOSE FUNCTIONS (CRITICAL) ── */
+window.renderStrategy = renderStrategy;
+window.generateCalendar = generateCalendar;
+window.buildAssets = buildAssets;
