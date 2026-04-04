@@ -1,5 +1,4 @@
 export default async function handler(req, res){
-
   if(req.method !== 'POST'){
     return res.status(405).json({error:'Method not allowed'});
   }
@@ -7,54 +6,76 @@ export default async function handler(req, res){
   const { type, input } = req.body;
 
   /* =========================
-     STRATEGY
+     STRATEGY (stronger output)
   ========================= */
-
   if(type === 'strategy'){
+    const headline = `${input.brand}: own the sharp edge in ${input.industry || 'your category'}`;
 
-    const text = `
-<b>${input.brand}</b><br><br>
+    const market = `Category is saturated with generic messaging. Attention is won by specificity, speed of output, and visible proof.`;
 
-<b>Positioning</b><br>
-${input.brand} wins by focusing on a clear, ownable edge in ${input.industry}.<br><br>
+    const positioning = `${input.brand} wins by compressing time-to-understand: clear promise, fast demonstration, repeated exposure.`;
 
-<b>Strategy</b><br>
-1. Capture attention with high-frequency short-form content<br>
-2. Convert via authority-driven messaging and proof<br>
-3. Retarget through email and repeat exposure<br><br>
+    const strategy = [
+      'Daily short-form content with a single idea per post across primary channels',
+      'Authority layer: weekly POV + data-backed posts to build credibility',
+      'Retargeting loop via email and repeated social exposure to convert'
+    ];
 
-<b>Messaging</b><br>
-- Problem: current market lacks clarity<br>
-- Value: simplified, premium solution<br>
-- Proof: consistent visible output<br>
-- CTA: immediate engagement<br>
-`;
+    const messaging = [
+      'Pain: audience is overwhelmed by undifferentiated options',
+      'Tension: choosing wrong wastes time and money',
+      'Value: faster clarity and visible results',
+      'Proof: consistent output and case-style content',
+      'CTA: engage now'
+    ];
 
-    return res.json({ text });
+    const channels = `Primary: social short-form. Support: email and retargeting.`;
+
+    return res.json({ headline, market, positioning, strategy, messaging, channels });
   }
 
   /* =========================
-     ASSETS (REAL IMAGES)
+     ASSETS (image generation)
   ========================= */
-
   if(type === 'assets'){
+    try{
+      const prompts = [
+        `${input.brand} bold social ad, minimal, strong typography, premium, ${input.tone}`,
+        `${input.brand} campaign creative, high contrast, modern brand layout, ${input.tone}`,
+        `${input.brand} product or service visual, clean composition, advertising style`
+      ];
 
-    const assets = [
-      {
-        url:`https://picsum.photos/seed/${input.brand}1/600/400`,
-        caption:`${input.brand} social creative`
-      },
-      {
-        url:`https://picsum.photos/seed/${input.brand}2/600/400`,
-        caption:`Campaign visual`
-      },
-      {
-        url:`https://picsum.photos/seed/${input.brand}3/600/400`,
-        caption:`Ad variation`
+      const images = [];
+
+      for(const p of prompts){
+        const r = await fetch('https://api.openai.com/v1/images/generations', {
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json',
+            'Authorization':`Bearer ${process.env.OPENAI_API_KEY}`
+          },
+          body: JSON.stringify({
+            model:'gpt-image-1',
+            prompt:p,
+            size:'1024x1024'
+          })
+        });
+
+        const d = await r.json();
+        const b64 = d.data[0].b64_json;
+        const url = `data:image/png;base64,${b64}`;
+
+        images.push({
+          url,
+          caption: p
+        });
       }
-    ];
 
-    return res.json({ assets });
+      return res.json({ assets: images });
+
+    } catch(e){
+      return res.status(500).json({error:'Asset generation failed'});
+    }
   }
 
   return res.status(400).json({error:'Invalid type'});
