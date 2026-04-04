@@ -1,129 +1,91 @@
-/* ── HELPERS ── */
-const gi = id => document.getElementById(id);
+function gi(id){ return document.getElementById(id); }
 
-/* ── INPUT MAPPING ── */
-function getInput() {
+function getInput(){
   return {
-    brand: gi("i-brand")?.value || "",
-    ind: gi("i-ind")?.value || "",
-    obj: gi("i-obj")?.value || "",
-    aud: gi("i-aud")?.value || "",
-    tone: gi("i-tone")?.value || ""
+    brand: gi('i-brand').value,
+    industry: gi('i-ind').value,
+    objective: gi('i-obj').value,
+    audience: gi('i-aud').value,
+    tone: gi('i-tone').value
   };
 }
 
-/* ── API CALL ── */
-async function generate(type, input) {
-  const res = await fetch("/api/generate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+/* =========================
+   STRATEGY
+========================= */
+
+async function generateStrategy(){
+  const out = gi('out-strategy');
+  out.innerHTML = 'Generating...';
+
+  const res = await fetch('/api/generate', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
-      type: type,
-      input: input || {}
+      type:'strategy',
+      input:getInput()
     })
   });
 
-  return await res.json();
+  const data = await res.json();
+  out.innerHTML = data.text || 'Error generating strategy';
 }
 
-/* ── STRATEGY ── */
-async function handleStrategy() {
-  const i = getInput();
+/* =========================
+   CALENDAR
+========================= */
 
-  const data = await generate("strategy", i);
+function generateCalendar(){
+  const cal = gi('calendar');
+  cal.innerHTML = '';
 
-  if (data.error) {
-    gi("out-strategy").innerHTML = `<p>${data.error}</p>`;
-    return;
+  for(let i=1;i<=30;i++){
+    const div = document.createElement('div');
+    div.className = 'cal-cell';
+    div.dataset.day = i;
+    div.innerHTML = `<div class="day-num">${i}</div><div>Click to add</div>`;
+
+    div.onclick = () => {
+      const existing = div.dataset.text || '';
+      const txt = prompt(`Day ${i} content`, existing);
+      if(txt !== null){
+        div.dataset.text = txt;
+        div.innerHTML = `<div class="day-num">${i}</div><div>${txt.substring(0,60)}</div>`;
+      }
+    };
+
+    cal.appendChild(div);
   }
-
-  gi("out-strategy").innerHTML = `
-    <div><b>Positioning:</b> ${data.positioning}</div>
-    <div><b>Audience:</b> ${data.audience}</div>
-    <div><b>Pillars:</b> ${data.pillars.join(", ")}</div>
-    <div><b>Messages:</b> ${data.messages.join(" | ")}</div>
-  `;
 }
 
-/* ── CALENDAR STATE ── */
-let calendarData = {};
+/* =========================
+   ASSETS
+========================= */
 
-/* ── CALENDAR ── */
-async function handleCalendar() {
-  const i = getInput();
+async function generateAssets(){
+  const wrap = gi('assets-wrap');
+  wrap.innerHTML = 'Generating assets...';
 
-  const data = await generate("calendar", i);
-
-  if (!Array.isArray(data)) return;
-
-  data.forEach(d => {
-    calendarData[d.day] = d.text;
+  const res = await fetch('/api/generate', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      type:'assets',
+      input:getInput()
+    })
   });
 
-  renderCalendar();
-}
+  const data = await res.json();
 
-function renderCalendar() {
-  for (let d = 1; d <= 30; d++) {
-    const cell = document.querySelector(`[data-day="${d}"]`);
-    if (!cell) continue;
-
-    const content = calendarData[d] || "";
-
-    cell.innerHTML = `
-      <div class="day-num">${d}</div>
-      <textarea class="day-text">${content}</textarea>
-    `;
-
-    const textarea = cell.querySelector("textarea");
-
-    textarea.addEventListener("input", e => {
-      calendarData[d] = e.target.value;
-    });
-  }
-}
-
-/* ── ASSETS ── */
-async function handleAssets() {
-  const i = getInput();
-
-  const data = await generate("copy", i);
-
-  const wrap = gi("assets-wrap");
-  wrap.innerHTML = "";
-
-  if (data.error) {
-    wrap.innerHTML = `<p>${data.error}</p>`;
+  if(!data.assets){
+    wrap.innerHTML = 'No assets returned';
     return;
   }
 
-  for (let x = 0; x < 3; x++) {
-    const canvas = document.createElement("canvas");
-    canvas.width = 400;
-    canvas.height = 200;
-
-    const ctx = canvas.getContext("2d");
-
-    ctx.fillStyle = "#6B3FA0";
-    ctx.fillRect(0, 0, 400, 200);
-
-    ctx.fillStyle = "#fff";
-    ctx.font = "18px Arial";
-    ctx.textAlign = "center";
-
-    ctx.fillText(data.headline, 200, 90);
-    ctx.fillText(data.cta, 200, 140);
-
-    const img = document.createElement("img");
-    img.src = canvas.toDataURL();
-
-    wrap.appendChild(img);
-  }
+  wrap.innerHTML = data.assets.map(a => `
+    <div>
+      <img src="${a.url}">
+      <div>${a.caption}</div>
+    </div>
+  `).join('');
 }
-
-/* ── EVENT BINDING (CRITICAL FIX) ── */
-window.addEventListener("DOMContentLoaded", () => {
-  document.querySelector("button:nth-of-type(1)").addEventListener("click", handleStrategy);
-  document.querySelector("button:nth-of-type(2)").addEventListener("click", handleCalendar);
-  document.querySelector("button:nth-of-type(3)").addEventListener("click", handleAssets);
-});
