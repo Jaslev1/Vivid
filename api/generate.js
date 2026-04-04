@@ -1,14 +1,25 @@
-
-module.exports = async function handler(req, res)
+module.exports = async function handler(req, res) {
   try {
-    const { type, input } = req.body;
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
+    }
+
+    const { type, input } = req.body || {};
+
+    if (!type || !input) {
+      return res.status(400).json({ error: "Missing type or input" });
+    }
+
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
+    }
 
     const prompt = buildPrompt(type, input);
 
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -19,13 +30,27 @@ module.exports = async function handler(req, res)
 
     const data = await response.json();
 
-    const text = data.output?.[0]?.content?.[0]?.text || "";
+    const text =
+      data?.output?.[0]?.content?.[0]?.text ||
+      data?.output_text ||
+      null;
 
-    res.status(200).json(parseOutput(text));
-  } catch (e) {
-    res.status(500).json({ error: e.message });
+    if (!text) {
+      return res.status(500).json({
+        error: "No text returned",
+        raw: data
+      });
+    }
+
+    return res.status(200).json(parseOutput(text));
+
+  } catch (err) {
+    return res.status(500).json({
+      error: "Function crash",
+      message: err.message
+    });
   }
-}
+};
 
 function buildPrompt(type, i) {
   if (type === "strategy") {
@@ -46,7 +71,7 @@ Return JSON:
   "messages": ["...", "...", "..."]
 }
 
-No clichés. Be sharp and commercial.
+No clichés.
 `;
   }
 
@@ -65,7 +90,7 @@ Return JSON array:
 
   if (type === "copy") {
     return `
-Write high-performing ad copy.
+Write ad copy.
 
 Brand: ${i.brand}
 Objective: ${i.obj}
