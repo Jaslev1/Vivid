@@ -1,25 +1,54 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Vivid App</title>
+  <meta charset="UTF-8">
+  <title>Vivid</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input { margin-right: 8px; padding: 6px; }
+    button { margin-right: 8px; padding: 6px 10px; cursor: pointer; }
+    #calendar { margin-top: 20px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+    .cal-cell { border: 1px solid #ddd; padding: 8px; min-height: 60px; cursor: pointer; }
+    #assets-wrap img { width: 200px; margin: 10px; }
+  </style>
 </head>
+
 <body>
 
-<input id="i-brand" placeholder="Brand"/>
-<input id="i-ind" placeholder="Industry"/>
-<input id="i-obj" placeholder="Objective"/>
-<input id="i-aud" placeholder="Audience"/>
-<input id="i-tone" placeholder="Tone"/>
+  <h2>Vivid</h2>
 
-<button onclick="renderStrategy()">Generate Strategy</button>
-<button onclick="generateCalendar()">Generate Calendar</button>
-<button onclick="buildAssets()">Generate Assets</button>
+  <div>
+    <input id="i-brand" placeholder="Brand">
+    <input id="i-ind" placeholder="Industry">
+    <input id="i-obj" placeholder="Objective">
+    <input id="i-aud" placeholder="Audience">
+    <input id="i-tone" placeholder="Tone">
+  </div>
 
-<div id="out-strategy"></div>
-<div id="calendar"></div>
-<div id="assets-wrap"></div>
+  <br>
 
-<script src="app.js"></script>
+  <div>
+    <button onclick="renderStrategy()">Generate Strategy</button>
+    <button onclick="generateCalendar()">Generate Calendar</button>
+    <button onclick="buildAssets()">Generate Assets</button>
+  </div>
+
+  <h3>Strategy</h3>
+  <div id="out-strategy"></div>
+
+  <h3>Calendar</h3>
+  <div id="calendar"></div>
+
+  <h3>Assets</h3>
+  <div id="assets-wrap"></div>
+
+  <!-- CRITICAL: must be ./ -->
+  <script src="./app.js"></script>
+
 </body>
 </html>
+``
