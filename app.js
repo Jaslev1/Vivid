@@ -30,12 +30,7 @@ const CE={
 const TM={ig:'Instagram',li:'LinkedIn',em:'Email',bl:'Blog'};
 const CM={ig:'ev-ig',li:'ev-li',em:'ev-em',bl:'ev-bl'};
 const AC=['#C96800','#6B3FA0','#F4A26B','#9B6B8A','#3D3D8F'];
-let atf='all', lb='Your Brand', dff=[], isGen=false, canvasFont='Arial,sans-serif';
-
-/* Inter is loaded by style.css — wait for it to be ready for Canvas use */
-document.fonts.ready.then(()=>{
-  if(document.fonts.check('bold 16px Inter'))canvasFont='Inter,Arial,sans-serif';
-});
+let atf='all', lb='Your Brand', dff=[], isGen=false;
 
 function gi(id){return document.getElementById(id)}
 
@@ -164,7 +159,7 @@ async function generate(){
   bAssets();
   goStrategy();
   await bStrat(inp);
-  await bCalDynamic(inp);
+  bCal();
   enGen();
 }
 
@@ -174,64 +169,44 @@ async function bStrat(inp){
   si.innerHTML=`<div class="accent-rule"></div><div class="inner-content"><div class="loading"><div class="spin"></div><div class="load-txt">Building your strategy...</div><div class="load-step" id="ls">Analysing brand inputs</div></div></div>`;
   const steps=['Analysing brand inputs','Setting campaign objectives','Mapping channel mix','Allocating budget','Drafting 8-week phases','Writing key messages'];
   let s=0;const iv=setInterval(()=>{s++;const el=gi('ls');if(el&&s<steps.length)el.textContent=steps[s]},900);
-  const tN=inp.tagline?`\nCRITICAL — the "headline" field must be EXACTLY this verbatim, character for character: "${inp.tagline}"`:'' ;
-  const pN=inp.prompt?`\nClient brief — treat this as the highest-priority input: ${inp.prompt}`:'';
-  const bbN=inp.bb?`\nBrand guidelines / extra context: ${inp.bb}`:'';
+  const tN=inp.tagline?`\nCRITICAL — use this exact tagline verbatim as "headline": "${inp.tagline}"`:'' ;
+  const pN=inp.prompt?`\nClient brief (prioritise this): ${inp.prompt}`:'';
 
-  const prompt=`You are a senior brand strategist — 20+ years across Ogilvy, Wieden+Kennedy, and growth-stage independents. You have been hired because the client is tired of generic strategy decks. Producing template output is a professional failure that will cost you the account.
+  const prompt=`You are a senior marketing strategist. Produce a real, specific, commercially usable strategy — not template language.
 
-━━ BRAND BRIEF ━━
-Brand: ${inp.brand}
-Category: ${inp.ind}
-What they actually do: ${inp.desc||'Not provided — infer specifically from industry and audience; do not leave gaps'}
-Campaign objective: ${inp.obj}
-Target audience: ${inp.aud||'Not specified — define the most credible primary segment given the category'}
-Monthly budget: ${inp.bud}
+BRAND:
+Name: ${inp.brand}
+Industry: ${inp.ind}
+Description: ${inp.desc||'Not specified'}
+Objective: ${inp.obj}
+Audience: ${inp.aud||'Not specified'}
+Budget: ${inp.bud}/month
+Voice: ${inp.tone}
 Channels: ${inp.ch.join(', ')}
-Voice: ${inp.tone}${bbN}${tN}${pN}
+Notes: ${inp.bb||'None'}${tN}${pN}
 
-━━ STRATEGIC REASONING (do this thinking before writing a word of JSON) ━━
-1. What do the 2–3 dominant brands in ${inp.ind} all do identically? That shared behaviour is the gap.
-2. What does ${inp.brand} do (from the description above) that none of them do — or do badly?
-3. What is the one psychological truth about ${inp.aud} that most ${inp.ind} brands are ignoring or are too scared to say out loud?
-4. What is the single strategic bet for this 8-week campaign — one primary message, one lead channel, one audience segment to own first?
-Use that reasoning to drive every field below.
+STRICT OUTPUT RULES:
 
-━━ FIELD RULES (a violation in any field means the output fails) ━━
+headline: ${inp.tagline?`Copy EXACTLY: "${inp.tagline}"`:`Sharp, ownable, max 10 words. Must reflect what ${inp.brand} actually does. No templates, no "the [industry] brand for [audience]".`}
 
-headline: ${inp.tagline?`VERBATIM — copy character for character: "${inp.tagline}"`:`The strategic wedge in 6–9 words. Must encode what ${inp.brand} owns that competitors cannot credibly claim. Forbidden words: innovative, smart, better, leading, trusted, quality, results, solutions — and any phrase a competitor could put on their own homepage.`}
+summary: 2 sentences max. Sentence 1: what market gap ${inp.brand} is entering and why this moment. Sentence 2: what the conversion strategy is. Be concrete — name the mechanism, not the intention.
 
-summary: Two sentences, no more.
-Sentence 1 — the market indictment: name the specific failure mode of incumbent ${inp.ind} brands that creates ${inp.brand}'s opening. Do not say "most brands overpromise" — say what they specifically do wrong and why ${inp.aud} are fed up with it.
-Sentence 2 — the mechanism: describe how ${inp.brand} wins at ${inp.bud}/month using ${inp.ch.join(' + ')} — name the psychological transition the campaign creates (scepticism → curiosity → trust → purchase), not just the channels.
+phases: 4 phases, each with 2–3 SHORT, SPECIFIC tactics. A tactic is a concrete action: "3-post Instagram carousel on [specific topic]", "A/B test two subject lines against the same offer", "retarget cart abandoners with a 24-hour discount code". NOT "create engaging content" or "build awareness through channels".
 
-phases: 4 phases × 3 tactics each. Every single tactic must:
-(a) name a concrete, schedulable action — not a content type
-(b) reference the specific angle, audience pain point, or brand proof being used
-(c) name the one metric that tells you it worked
-Example of good: "3-post carousel: the top 3 ${inp.ind} mistakes ${inp.aud} make, each with a ${inp.brand} fix — target metric: save rate >8%"
-Example of failure: "Create engaging content" / "Post on Instagram" / "Build brand awareness"
+messages: 3 key messages. Each must be a specific claim ONLY ${inp.brand} can make — rooted in what the brand does (desc), who it serves (audience), and what it proves. NEVER write "we put customers first", "quality you can trust", or any generic phrase. If description is thin, use industry context to write something specific and bold.
 
-messages: Three messages. Each must pull a different psychological lever:
-Message 1 — Loss/risk: what ${inp.aud} are concretely losing or risking by not using ${inp.brand} — make it specific and uncomfortable
-Message 2 — Identity/aspiration: who ${inp.aud} become or how they see themselves when they use ${inp.brand} — not a feature, a self-image
-Message 3 — Proof/authority: one specific, verifiable claim about what ${inp.brand} delivers — rooted in the description provided, not a category-level boast
-No message may share a sentence structure with another. None may appear in a competitor's deck.
+kpis: realistic projected ranges for ${inp.bud}/month.
 
-kpis: Realistic projected ranges for ${inp.bud}/month on ${inp.ch.join(', ')} — not aspirational, not sandbagged.
-alloc: Reflect actual channel mix: ${inp.ch.join(', ')}. Must sum to 100.
-
-━━ OUTPUT ━━
-Return ONLY valid JSON. No markdown fences, no commentary, no explanation:
-{"headline":"...","summary":"...","phases":[{"week":"Weeks 1–2","name":"...","desc":"..."},{"week":"Weeks 3–4","name":"...","desc":"..."},{"week":"Weeks 5–6","name":"...","desc":"..."},{"week":"Weeks 7–8","name":"...","desc":"..."}],"alloc":[{"lbl":"Paid social","pct":35},{"lbl":"Content creation","pct":25},{"lbl":"Email / CRM","pct":15},{"lbl":"Influencer / seeding","pct":15},{"lbl":"Contingency","pct":10}],"kpis":[{"lbl":"Projected monthly reach","val":"..."},{"lbl":"Projected engagement rate","val":"..."},{"lbl":"Projected email open rate","val":"..."}],"messages":["...","...","..."]}`;
+Return ONLY valid JSON:
+{"headline":"...","summary":"...","phases":[{"week":"Weeks 1–2","name":"...","desc":"..."},{"week":"Weeks 3–4","name":"...","desc":"..."},{"week":"Weeks 5–6","name":"...","desc":"..."},{"week":"Weeks 7–8","name":"...","desc":"..."}],"alloc":[{"lbl":"Paid social","pct":35},{"lbl":"Content creation","pct":25},{"lbl":"Email / CRM","pct":15},{"lbl":"Influencer / seeding","pct":15},{"lbl":"Contingency","pct":10}],"kpis":[{"lbl":"Projected monthly reach","val":"40–60K"},{"lbl":"Projected engagement","val":"3.5–5.5%"},{"lbl":"Projected email open","val":"24–32%"}],"messages":["...","...","..."]}`;
 
   let data=null;
   try{
-    const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:prompt}],max_tokens:1800})});
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1800,messages:[{role:'user',content:prompt}]})});
     if(!r.ok)throw new Error(`HTTP ${r.status}`);
     const res=await r.json();clearInterval(iv);
-    if(res.error)throw new Error(res.error);
-    const txt=res.choices[0].message.content;
+    if(res.error)throw new Error(res.error.message);
+    const txt=res.content.map(c=>c.text||'').join('');
     const match=txt.match(/\{[\s\S]*\}/);
     if(!match)throw new Error('No JSON');
     data=JSON.parse(match[0]);
@@ -311,56 +286,6 @@ function rStrat(s,inp){
   </div>`;
 }
 
-/* ── DYNAMIC CALENDAR ── */
-async function bCalDynamic(inp){
-  /* Map selected channels to our 4 calendar types */
-  const chMap={instagram:'ig',linkedin:'li',email:'em',facebook:'ig',tiktok:'ig','x / twitter':'li','x/twitter':'li',twitter:'li',youtube:'bl',pinterest:'ig',blog:'bl',content:'bl'};
-  const activeTypes=[...new Set(inp.ch.map(c=>chMap[c.toLowerCase().trim()]||'ig'))];
-
-  const p=`You are a senior content strategist. Generate exactly 24 post concepts for an 8-week campaign for ${inp.brand}.
-
-Brand: ${inp.brand}
-Category: ${inp.ind}
-What they do: ${inp.desc||'not specified'}
-Audience: ${inp.aud||'general consumers'}
-Voice: ${inp.tone||'professional'}
-Channels in use: ${inp.ch.join(', ')}
-Campaign objective: ${inp.obj}
-
-RULES — every concept must follow all of these:
-1. The title must be a specific, concrete hook — a number, a tension, a bold claim, or a named outcome. It must make ${inp.aud} want to stop and read.
-2. Reference something real about ${inp.brand}, ${inp.ind}, or ${inp.aud} — not generic social media wisdom.
-3. The sequence must build logically over 8 weeks: weeks 1–2 = awareness/problem, weeks 3–4 = proof/credibility, weeks 5–6 = conversion/offer, weeks 7–8 = retention/community.
-4. NO generic labels: "Founder story", "Educational post", "Product spotlight", "Testimonial", "Behind the scenes" are formats not concepts — forbidden.
-
-Good example title: "The one document ${inp.aud} always forget — and what it costs them"
-Bad example title: "Educational carousel" or "Brand story post"
-
-Use only these channel codes: ${activeTypes.join(', ')}
-(ig = Instagram/short-form visual, li = LinkedIn/Twitter, em = Email, bl = Blog/long-form)
-Distribute evenly across the active channel types.
-
-Return ONLY a valid JSON array of exactly 24 objects. No markdown, no commentary:
-[{"t":"ig","x":"Specific hook-driven title here"},...]`;
-
-  try{
-    const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:p}],max_tokens:1000})});
-    const d=await r.json();
-    if(d.error)throw new Error(d.error);
-    const txt=d.choices[0].message.content;
-    const match=txt.match(/\[[\s\S]*\]/);
-    if(!match)throw new Error('No JSON array');
-    const concepts=JSON.parse(match[0]).slice(0,24);
-    /* Spread across Mon / Wed / Fri of each of 8 weeks */
-    const slots=[1,3,5,8,10,12,15,17,19,22,24,26,29,31,33,36,38,40,43,45,47,50,52,54];
-    Object.keys(CE).forEach(k=>delete CE[k]);
-    concepts.forEach((c,i)=>{
-      if(i<slots.length){const day=slots[i];if(!CE[day])CE[day]=[];CE[day].push({t:c.t||'ig',x:String(c.x).slice(0,60)});}
-    });
-  }catch(e){console.warn('Calendar AI failed — keeping defaults:',e.message);}
-  bCal();
-}
-
 /* ── CALENDAR ── */
 function bCal(){
   const ch={
@@ -431,30 +356,19 @@ async function gPost(title,type){
   const origVal=pbt?pbt.value:'';
   if(pbt){pbt.value='Rewriting\u2026';pbt.style.color='var(--hint)'}
   const tl={ig:'Instagram post',li:'LinkedIn post',em:'Email newsletter',bl:'Blog post'}[type]||'social post';
-  const p=`Write a ${tl} for the brand "${inp.brand||lb}".
-
-Brand details:
-- Industry: ${inp.ind||'not specified'}
-- What they do: ${inp.desc||'not specified'}
-- Target audience: ${inp.aud||'general consumers'}
-- Brand voice: ${inp.tone||'engaging and direct'}
-- Post concept: "${title}"
-${ctx?`- Writer direction: ${ctx}`:''}
-
-Rules:
-- The copy must sound like it comes from ${inp.brand||lb} specifically — reference their industry, audience, or what they do
-- Voice: ${inp.tone||'engaging and direct'}
-- No filler phrases ("excited to share", "in today's world", "game-changer")
-${type==='ig'?'- End with 3–5 relevant hashtags on a new line. Use real hashtag format (#word).':''}
-${type==='em'?'- First line must be "Subject: [subject line]". Then a blank line. Then the email body.':''}
-${type==='li'?'- LinkedIn format: short punchy opener, numbered points or short paragraphs, close with a question or call to action.':''}
-${type==='bl'?'- Blog format: H1 title, intro paragraph, 2–3 subheadings (##), body text under each, closing paragraph.':''}
-Return ONLY the finished copy. No preamble, no explanation, no "Here is your post:".`;
+  const p=`Write a ${tl} for ${inp.brand||lb} — a ${inp.ind||'brand'}.
+Concept: "${title}".
+Brand voice: ${inp.tone||'engaging and direct'}.
+Target audience: ${inp.aud||'general consumers'}.
+${ctx?`Additional direction: ${ctx}`:''}
+${type==='ig'?'End with 3\u20135 relevant hashtags on a new line.':''}
+${type==='em'?'First line: "Subject: [subject line]". Then blank line. Then email body.':''}
+Return ONLY the copy. No preamble. No "Here is your post:".`;
   try{
-    const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:p}],max_tokens:700})});
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,messages:[{role:'user',content:p}]})});
     const d=await r.json();
-    if(d.error)throw new Error(d.error);
-    const txt=d.choices[0].message.content;
+    if(d.error)throw new Error(d.error.message);
+    const txt=d.content.map(c=>c.text||'').join('');
     if(pbt){pbt.value=txt;pbt.style.color='var(--dark)'}
   }catch(e){
     if(pbt){pbt.value=origVal||gDraft(title,type,inp);pbt.style.color='var(--dark)'}
@@ -462,151 +376,51 @@ Return ONLY the finished copy. No preamble, no explanation, no "Here is your pos
 }
 
 /* ── ASSETS ── */
-/* Shrink font until text fits within maxW px, respecting a minimum size */
-function fitText(ctx,text,maxW,startSize,minSize,weight){
-  const w=weight||'bold';
-  let sz=startSize;
-  ctx.font=`${w} ${sz}px ${canvasFont}`;
-  while(ctx.measureText(text).width>maxW&&sz>minSize){
-    sz=Math.max(minSize,sz-1);
-    ctx.font=`${w} ${sz}px ${canvasFont}`;
-  }
-  return sz;
-}
-
 function genAssetCanvas(a,brand,tagline){
   const parts=a.d.split('\u00d7');
   const origW=parseInt(parts[0]),origH=parseInt(parts[1]);
+  // Scale to max 1080 on longest side for a usable download
   const maxDim=1080;
   const scale=Math.min(1,maxDim/Math.max(origW,origH));
   const cw=Math.round(origW*scale),ch=Math.round(origH*scale);
   const canvas=document.createElement('canvas');
   canvas.width=cw;canvas.height=ch;
   const ctx=canvas.getContext('2d');
-
-  const isLand=cw>ch*1.4;   // wide banners (LI, leaderboard, email header, FB cover)
-  const isTall=ch>cw*1.2;   // portrait (story, skyscraper, half-page, pin)
-  const minD=Math.min(cw,ch);
-
-  /* ── 1. SOLID BACKGROUND ── */
+  // Background
   ctx.fillStyle=a.bg;ctx.fillRect(0,0,cw,ch);
-
-  /* ── 2. GEOMETRIC LAYER ── */
-  ctx.save();
-  if(isLand){
-    // Right-side large circle bleed
-    ctx.beginPath();ctx.arc(cw*.88,ch*.5,ch*.9,0,Math.PI*2);
-    ctx.fillStyle='rgba(255,255,255,0.06)';ctx.fill();
-    // Second smaller circle
-    ctx.beginPath();ctx.arc(cw*.82,ch*.5,ch*.45,0,Math.PI*2);
-    ctx.fillStyle='rgba(255,255,255,0.05)';ctx.fill();
-    // Left vertical accent stripe
-    ctx.fillStyle='rgba(255,255,255,0.07)';
-    ctx.fillRect(0,0,Math.max(3,Math.round(cw*.004)),ch);
-  }else if(isTall){
-    // Top large arc bleeding off top edge
-    ctx.beginPath();ctx.arc(cw*.5,ch*.08,cw*.78,0,Math.PI*2);
-    ctx.fillStyle='rgba(255,255,255,0.07)';ctx.fill();
-    // Bottom-left small circle
-    ctx.beginPath();ctx.arc(cw*.1,ch*.88,cw*.32,0,Math.PI*2);
-    ctx.fillStyle='rgba(0,0,0,0.10)';ctx.fill();
-    // Horizontal band in lower third
-    ctx.fillStyle='rgba(0,0,0,0.12)';
-    ctx.fillRect(0,ch*.72,cw,ch*.28);
-  }else{
-    // Square: large circle top-right bleeding off
-    ctx.beginPath();ctx.arc(cw*.85,ch*.18,cw*.55,0,Math.PI*2);
-    ctx.fillStyle='rgba(255,255,255,0.07)';ctx.fill();
-    // Small circle bottom-left
-    ctx.beginPath();ctx.arc(cw*.15,ch*.82,cw*.22,0,Math.PI*2);
-    ctx.fillStyle='rgba(0,0,0,0.09)';ctx.fill();
-  }
-  ctx.restore();
-
-  /* ── 3. RADIAL HIGHLIGHT (top-left warmth) ── */
-  const rad=ctx.createRadialGradient(cw*.18,ch*.15,0,cw*.18,ch*.15,Math.max(cw,ch)*.7);
-  rad.addColorStop(0,'rgba(255,255,255,0.11)');rad.addColorStop(1,'rgba(0,0,0,0)');
+  // Radial highlight (subtle)
+  const rad=ctx.createRadialGradient(cw*.22,ch*.2,0,cw*.22,ch*.2,Math.max(cw,ch)*.75);
+  rad.addColorStop(0,'rgba(255,255,255,0.14)');rad.addColorStop(1,'rgba(0,0,0,0)');
   ctx.fillStyle=rad;ctx.fillRect(0,0,cw,ch);
-
-  /* ── 4. TOP ACCENT BAR (brand gradient) ── */
-  const barH=Math.max(5,Math.round(ch*(isLand?.025:.012)));
+  // Top accent bar (brand gradient)
+  const barH=Math.max(5,Math.round(ch*.013));
   const barG=ctx.createLinearGradient(0,0,cw,0);
   barG.addColorStop(0,'#3D4B6B');barG.addColorStop(.45,'#6B3FA0');barG.addColorStop(1,'#F4A26B');
   ctx.fillStyle=barG;ctx.fillRect(0,0,cw,barH);
-
-  /* ── 5. TYPOGRAPHY ── */
-  ctx.fillStyle=a.tc;
-
-  if(isLand){
-    /* LANDSCAPE: left-aligned, vertically centred */
-    const pad=cw*.055;
-    const maxBW=cw*(tagline?.52:.62);
-    const startB=Math.max(14,Math.round(ch*(tagline?.38:.46)));
-    const bSize=fitText(ctx,brand,maxBW,startB,10,'bold');
-    ctx.textAlign='left';ctx.textBaseline='middle';
-    ctx.fillStyle=a.tc;
-    const textBlockY=ch*.5+(tagline?-bSize*.42:0);
-    ctx.fillText(brand,pad,textBlockY);
-    if(tagline){
-      const tSize=Math.max(9,Math.round(bSize*.36));
-      fitText(ctx,tagline,cw*(1-pad/cw*.2-.15),tSize,8,'');
-      ctx.globalAlpha=.70;
-      const tLine=tagline.length>60?tagline.slice(0,60)+'\u2026':tagline;
-      ctx.fillText(tLine,pad,textBlockY+bSize*.82);
-      ctx.globalAlpha=1;
-    }
-    ctx.fillStyle=a.tc;ctx.globalAlpha=.22;
-    ctx.fillRect(pad-Math.round(pad*.18),ch*.22,Math.max(2,Math.round(cw*.002)),ch*.56);
-    ctx.globalAlpha=1;ctx.fillStyle=a.tc;
-    const lSize=Math.max(8,Math.round(ch*.13));
-    fitText(ctx,a.s,cw*.25,lSize,7,'700');
-    ctx.textAlign='right';ctx.globalAlpha=.30;
-    ctx.fillText(a.s,cw-pad,ch*.5);ctx.globalAlpha=1;
-  }else{
-    /* PORTRAIT / SQUARE: centred layout */
-    const cx=cw/2;
-    const maxBW=cw*.82;
-    const startB=Math.max(20,Math.round(minD*(isTall?.09:.105)));
-    const bSize=fitText(ctx,brand,maxBW,startB,14,'bold');
-    const nameY=isTall?ch*.44:ch*(tagline?.44:.5);
-    ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillStyle=a.tc;
-    ctx.fillText(brand,cx,nameY);
-    const ruleW=minD*.28;
-    const ruleY=nameY+bSize*.68;
-    ctx.strokeStyle=a.tc;ctx.globalAlpha=.22;ctx.lineWidth=Math.max(1,Math.round(minD*.002));
-    ctx.beginPath();ctx.moveTo(cx-ruleW/2,ruleY);ctx.lineTo(cx+ruleW/2,ruleY);ctx.stroke();
-    ctx.globalAlpha=1;
-    if(tagline){
-      const tSize=fitText(ctx,tagline,cw*.78,Math.max(10,Math.round(bSize*.36)),8,'');
-      ctx.globalAlpha=.70;
-      const tLine=tagline.length>42?tagline.slice(0,42)+'\u2026':tagline;
-      ctx.fillText(tLine,cx,ruleY+tSize*1.3);ctx.globalAlpha=1;
-    }
-    if(isTall){
-      const lSize=fitText(ctx,a.s,cw*.6,Math.max(9,Math.round(minD*.04)),7,'700');
-      ctx.textAlign='center';ctx.globalAlpha=.38;
-      ctx.fillText(a.s,cx,ch*.88);ctx.globalAlpha=1;
-    }
+  // Brand name
+  const minDim=Math.min(cw,ch);
+  const bSize=Math.max(20,Math.round(minDim*.1));
+  ctx.fillStyle=a.tc;ctx.textAlign='center';ctx.textBaseline='alphabetic';
+  ctx.font=`bold ${bSize}px Arial,sans-serif`;
+  const midY=tagline?ch*.48:ch*.52;
+  ctx.fillText(brand,cw/2,midY);
+  // Tagline
+  if(tagline){
+    const tSize=Math.max(10,Math.round(bSize*.38));
+    ctx.font=`${tSize}px Arial,sans-serif`;ctx.globalAlpha=.72;
+    const tLine=tagline.length>48?tagline.slice(0,48)+'\u2026':tagline;
+    ctx.fillText(tLine,cw/2,midY+bSize*.85);ctx.globalAlpha=1;
   }
-
-  /* ── 6. FORMAT LABEL top-right (non-tall) ── */
-  if(!isTall){
-    const lSz=fitText(ctx,a.s,cw*.22,Math.max(8,Math.round(minD*.028)),7,'600');
-    ctx.textAlign='right';ctx.textBaseline='top';
-    ctx.fillStyle=a.tc;ctx.globalAlpha=.38;
-    ctx.fillText(a.s,cw-Math.round(cw*.025),barH+Math.round(ch*.018));
-    ctx.globalAlpha=1;
-  }
-
-  /* ── 7. DIMENSIONS WATERMARK bottom-right ── */
-  const dSz=Math.max(7,Math.round(minD*.022));
-  ctx.font=`${dSz}px ${canvasFont}`;
-  ctx.textAlign='right';ctx.textBaseline='bottom';
-  ctx.fillStyle=a.tc;ctx.globalAlpha=.22;
-  ctx.fillText(a.d+' px',cw-Math.round(cw*.025),ch-Math.round(ch*.018));
-  ctx.globalAlpha=1;
-
+  // Format label — top right
+  const lSize=Math.max(9,Math.round(minDim*.034));
+  ctx.font=`600 ${lSize}px Arial,sans-serif`;ctx.textAlign='right';ctx.textBaseline='top';
+  ctx.fillStyle=a.tc;ctx.globalAlpha=.45;
+  ctx.fillText(a.s,cw-Math.round(cw*.03),barH+Math.round(ch*.016));ctx.globalAlpha=1;
+  // Dimensions — bottom right
+  const dSize=Math.max(8,Math.round(minDim*.025));
+  ctx.font=`${dSize}px Arial,sans-serif`;ctx.textAlign='right';ctx.textBaseline='bottom';
+  ctx.fillStyle=a.tc;ctx.globalAlpha=.32;
+  ctx.fillText(a.d+' px',cw-Math.round(cw*.03),ch-Math.round(ch*.016));ctx.globalAlpha=1;
   return canvas;
 }
 
