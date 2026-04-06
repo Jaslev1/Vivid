@@ -30,7 +30,12 @@ const CE={
 const TM={ig:'Instagram',li:'LinkedIn',em:'Email',bl:'Blog'};
 const CM={ig:'ev-ig',li:'ev-li',em:'ev-em',bl:'ev-bl'};
 const AC=['#C96800','#6B3FA0','#F4A26B','#9B6B8A','#3D3D8F'];
-let atf='all', lb='Your Brand', dff=[], isGen=false;
+let atf='all', lb='Your Brand', dff=[], isGen=false, canvasFont='Arial,sans-serif';
+
+/* Inter is loaded by style.css — wait for it to be ready for Canvas use */
+document.fonts.ready.then(()=>{
+  if(document.fonts.check('bold 16px Inter'))canvasFont='Inter,Arial,sans-serif';
+});
 
 function gi(id){return document.getElementById(id)}
 
@@ -159,7 +164,7 @@ async function generate(){
   bAssets();
   goStrategy();
   await bStrat(inp);
-  bCal();
+  await bCalDynamic(inp);
   enGen();
 }
 
@@ -173,34 +178,51 @@ async function bStrat(inp){
   const pN=inp.prompt?`\nClient brief — treat this as the highest-priority input: ${inp.prompt}`:'';
   const bbN=inp.bb?`\nBrand guidelines / extra context: ${inp.bb}`:'';
 
-  const prompt=`You are a senior marketing strategist being paid to produce a commercially usable, brand-specific strategy document. Generic output is a failure. Every sentence must use the specific brand data below.
+  const prompt=`You are a senior brand strategist — 20+ years across Ogilvy, Wieden+Kennedy, and growth-stage independents. You have been hired because the client is tired of generic strategy decks. Producing template output is a professional failure that will cost you the account.
 
-━━ BRAND DATA (use all of this — do not substitute generics) ━━
-Brand name: ${inp.brand}
-Industry / category: ${inp.ind}
-What the brand does: ${inp.desc||'Not provided — infer from industry and audience'}
+━━ BRAND BRIEF ━━
+Brand: ${inp.brand}
+Category: ${inp.ind}
+What they actually do: ${inp.desc||'Not provided — infer specifically from industry and audience; do not leave gaps'}
 Campaign objective: ${inp.obj}
-Target audience: ${inp.aud||'Not specified — use industry context to define a plausible primary segment'}
+Target audience: ${inp.aud||'Not specified — define the most credible primary segment given the category'}
 Monthly budget: ${inp.bud}
-Brand voice: ${inp.tone}
-Active channels: ${inp.ch.join(', ')}${bbN}${tN}${pN}
+Channels: ${inp.ch.join(', ')}
+Voice: ${inp.tone}${bbN}${tN}${pN}
 
-━━ RULES FOR EACH FIELD ━━
+━━ STRATEGIC REASONING (do this thinking before writing a word of JSON) ━━
+1. What do the 2–3 dominant brands in ${inp.ind} all do identically? That shared behaviour is the gap.
+2. What does ${inp.brand} do (from the description above) that none of them do — or do badly?
+3. What is the one psychological truth about ${inp.aud} that most ${inp.ind} brands are ignoring or are too scared to say out loud?
+4. What is the single strategic bet for this 8-week campaign — one primary message, one lead channel, one audience segment to own first?
+Use that reasoning to drive every field below.
 
-headline: ${inp.tagline?`Must be EXACTLY: "${inp.tagline}" — copy it character for character.`:`6–10 words. Must name what ${inp.brand} specifically does or who it serves. Forbidden: "the [adj] choice", "built for [audience]", "quality you can trust", any phrase that could apply to any brand.`}
+━━ FIELD RULES (a violation in any field means the output fails) ━━
 
-summary: Exactly 2 sentences. Sentence 1: the specific market gap ${inp.brand} addresses and what makes right now the moment to enter. Sentence 2: the conversion mechanism — name the actual tactic sequence, not the intention. Both sentences must reference either the brand description, audience, or a channel-specific dynamic. No abstract nouns.
+headline: ${inp.tagline?`VERBATIM — copy character for character: "${inp.tagline}"`:`The strategic wedge in 6–9 words. Must encode what ${inp.brand} owns that competitors cannot credibly claim. Forbidden words: innovative, smart, better, leading, trusted, quality, results, solutions — and any phrase a competitor could put on their own homepage.`}
 
-phases: 4 campaign phases. Each phase description must contain 3 concrete, schedulable tactics — e.g. "3-carousel series on [specific ${inp.ind} topic]", "A/B subject line test: [specific angle A] vs [specific angle B], same offer". Every tactic must name ${inp.brand}, ${inp.aud||'the audience'}, or a specific content angle. Forbidden: "create content", "build awareness", "engage your audience".
+summary: Two sentences, no more.
+Sentence 1 — the market indictment: name the specific failure mode of incumbent ${inp.ind} brands that creates ${inp.brand}'s opening. Do not say "most brands overpromise" — say what they specifically do wrong and why ${inp.aud} are fed up with it.
+Sentence 2 — the mechanism: describe how ${inp.brand} wins at ${inp.bud}/month using ${inp.ch.join(' + ')} — name the psychological transition the campaign creates (scepticism → curiosity → trust → purchase), not just the channels.
 
-messages: 3 key messages. Each must be a claim that is true of ${inp.brand} specifically — derived from the description, audience, and objective provided. Each message must take a different angle: one product/service proof, one audience-fit proof, one category contrast. None of the three should share a sentence structure. Forbidden: "we put customers first", "results-driven", "industry-leading", any phrase that could apply to any brand in any category.
+phases: 4 phases × 3 tactics each. Every single tactic must:
+(a) name a concrete, schedulable action — not a content type
+(b) reference the specific angle, audience pain point, or brand proof being used
+(c) name the one metric that tells you it worked
+Example of good: "3-post carousel: the top 3 ${inp.ind} mistakes ${inp.aud} make, each with a ${inp.brand} fix — target metric: save rate >8%"
+Example of failure: "Create engaging content" / "Post on Instagram" / "Build brand awareness"
 
-kpis: Project realistic ranges based on ${inp.bud}/month and channels: ${inp.ch.join(', ')}.
+messages: Three messages. Each must pull a different psychological lever:
+Message 1 — Loss/risk: what ${inp.aud} are concretely losing or risking by not using ${inp.brand} — make it specific and uncomfortable
+Message 2 — Identity/aspiration: who ${inp.aud} become or how they see themselves when they use ${inp.brand} — not a feature, a self-image
+Message 3 — Proof/authority: one specific, verifiable claim about what ${inp.brand} delivers — rooted in the description provided, not a category-level boast
+No message may share a sentence structure with another. None may appear in a competitor's deck.
 
-alloc: Adjust percentage split based on channels selected: ${inp.ch.join(', ')}. Must sum to 100.
+kpis: Realistic projected ranges for ${inp.bud}/month on ${inp.ch.join(', ')} — not aspirational, not sandbagged.
+alloc: Reflect actual channel mix: ${inp.ch.join(', ')}. Must sum to 100.
 
 ━━ OUTPUT ━━
-Return ONLY valid JSON, no markdown fences, no commentary:
+Return ONLY valid JSON. No markdown fences, no commentary, no explanation:
 {"headline":"...","summary":"...","phases":[{"week":"Weeks 1–2","name":"...","desc":"..."},{"week":"Weeks 3–4","name":"...","desc":"..."},{"week":"Weeks 5–6","name":"...","desc":"..."},{"week":"Weeks 7–8","name":"...","desc":"..."}],"alloc":[{"lbl":"Paid social","pct":35},{"lbl":"Content creation","pct":25},{"lbl":"Email / CRM","pct":15},{"lbl":"Influencer / seeding","pct":15},{"lbl":"Contingency","pct":10}],"kpis":[{"lbl":"Projected monthly reach","val":"..."},{"lbl":"Projected engagement rate","val":"..."},{"lbl":"Projected email open rate","val":"..."}],"messages":["...","...","..."]}`;
 
   let data=null;
@@ -287,6 +309,56 @@ function rStrat(s,inp){
       <button class="btn-action-assets" onclick="goAssets()">View asset inventory &#8594;</button>
     </div>
   </div>`;
+}
+
+/* ── DYNAMIC CALENDAR ── */
+async function bCalDynamic(inp){
+  /* Map selected channels to our 4 calendar types */
+  const chMap={instagram:'ig',linkedin:'li',email:'em',facebook:'ig',tiktok:'ig','x / twitter':'li','x/twitter':'li',twitter:'li',youtube:'bl',pinterest:'ig',blog:'bl',content:'bl'};
+  const activeTypes=[...new Set(inp.ch.map(c=>chMap[c.toLowerCase().trim()]||'ig'))];
+
+  const p=`You are a senior content strategist. Generate exactly 24 post concepts for an 8-week campaign for ${inp.brand}.
+
+Brand: ${inp.brand}
+Category: ${inp.ind}
+What they do: ${inp.desc||'not specified'}
+Audience: ${inp.aud||'general consumers'}
+Voice: ${inp.tone||'professional'}
+Channels in use: ${inp.ch.join(', ')}
+Campaign objective: ${inp.obj}
+
+RULES — every concept must follow all of these:
+1. The title must be a specific, concrete hook — a number, a tension, a bold claim, or a named outcome. It must make ${inp.aud} want to stop and read.
+2. Reference something real about ${inp.brand}, ${inp.ind}, or ${inp.aud} — not generic social media wisdom.
+3. The sequence must build logically over 8 weeks: weeks 1–2 = awareness/problem, weeks 3–4 = proof/credibility, weeks 5–6 = conversion/offer, weeks 7–8 = retention/community.
+4. NO generic labels: "Founder story", "Educational post", "Product spotlight", "Testimonial", "Behind the scenes" are formats not concepts — forbidden.
+
+Good example title: "The one document ${inp.aud} always forget — and what it costs them"
+Bad example title: "Educational carousel" or "Brand story post"
+
+Use only these channel codes: ${activeTypes.join(', ')}
+(ig = Instagram/short-form visual, li = LinkedIn/Twitter, em = Email, bl = Blog/long-form)
+Distribute evenly across the active channel types.
+
+Return ONLY a valid JSON array of exactly 24 objects. No markdown, no commentary:
+[{"t":"ig","x":"Specific hook-driven title here"},...]`;
+
+  try{
+    const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:p}],max_tokens:1000})});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    const txt=d.choices[0].message.content;
+    const match=txt.match(/\[[\s\S]*\]/);
+    if(!match)throw new Error('No JSON array');
+    const concepts=JSON.parse(match[0]).slice(0,24);
+    /* Spread across Mon / Wed / Fri of each of 8 weeks */
+    const slots=[1,3,5,8,10,12,15,17,19,22,24,26,29,31,33,36,38,40,43,45,47,50,52,54];
+    Object.keys(CE).forEach(k=>delete CE[k]);
+    concepts.forEach((c,i)=>{
+      if(i<slots.length){const day=slots[i];if(!CE[day])CE[day]=[];CE[day].push({t:c.t||'ig',x:String(c.x).slice(0,60)});}
+    });
+  }catch(e){console.warn('Calendar AI failed — keeping defaults:',e.message);}
+  bCal();
 }
 
 /* ── CALENDAR ── */
@@ -390,6 +462,18 @@ Return ONLY the finished copy. No preamble, no explanation, no "Here is your pos
 }
 
 /* ── ASSETS ── */
+/* Shrink font until text fits within maxW px, respecting a minimum size */
+function fitText(ctx,text,maxW,startSize,minSize,weight){
+  const w=weight||'bold';
+  let sz=startSize;
+  ctx.font=`${w} ${sz}px ${canvasFont}`;
+  while(ctx.measureText(text).width>maxW&&sz>minSize){
+    sz=Math.max(minSize,sz-1);
+    ctx.font=`${w} ${sz}px ${canvasFont}`;
+  }
+  return sz;
+}
+
 function genAssetCanvas(a,brand,tagline){
   const parts=a.d.split('\u00d7');
   const origW=parseInt(parts[0]),origH=parseInt(parts[1]);
@@ -456,71 +540,68 @@ function genAssetCanvas(a,brand,tagline){
   if(isLand){
     /* LANDSCAPE: left-aligned, vertically centred */
     const pad=cw*.055;
-    const bSize=Math.max(14,Math.round(ch*(tagline?.38:.46)));
-    ctx.font=`bold ${bSize}px Arial,sans-serif`;
+    const maxBW=cw*(tagline?.52:.62);
+    const startB=Math.max(14,Math.round(ch*(tagline?.38:.46)));
+    const bSize=fitText(ctx,brand,maxBW,startB,10,'bold');
     ctx.textAlign='left';ctx.textBaseline='middle';
+    ctx.fillStyle=a.tc;
     const textBlockY=ch*.5+(tagline?-bSize*.42:0);
     ctx.fillText(brand,pad,textBlockY);
     if(tagline){
       const tSize=Math.max(9,Math.round(bSize*.36));
-      ctx.font=`${tSize}px Arial,sans-serif`;
+      fitText(ctx,tagline,cw*(1-pad/cw*.2-.15),tSize,8,'');
       ctx.globalAlpha=.70;
       const tLine=tagline.length>60?tagline.slice(0,60)+'\u2026':tagline;
       ctx.fillText(tLine,pad,textBlockY+bSize*.82);
       ctx.globalAlpha=1;
     }
-    // Thin vertical rule left of text area
     ctx.fillStyle=a.tc;ctx.globalAlpha=.22;
     ctx.fillRect(pad-Math.round(pad*.18),ch*.22,Math.max(2,Math.round(cw*.002)),ch*.56);
     ctx.globalAlpha=1;ctx.fillStyle=a.tc;
-    // Format label — right side, mid-height
     const lSize=Math.max(8,Math.round(ch*.13));
-    ctx.font=`700 ${lSize}px Arial,sans-serif`;
+    fitText(ctx,a.s,cw*.25,lSize,7,'700');
     ctx.textAlign='right';ctx.globalAlpha=.30;
     ctx.fillText(a.s,cw-pad,ch*.5);ctx.globalAlpha=1;
   }else{
     /* PORTRAIT / SQUARE: centred layout */
     const cx=cw/2;
-    const bSize=Math.max(20,Math.round(minD*(isTall?.09:.105)));
-    // Position brand name: upper area for tall, centre for square
+    const maxBW=cw*.82;
+    const startB=Math.max(20,Math.round(minD*(isTall?.09:.105)));
+    const bSize=fitText(ctx,brand,maxBW,startB,14,'bold');
     const nameY=isTall?ch*.44:ch*(tagline?.44:.5);
-    ctx.font=`bold ${bSize}px Arial,sans-serif`;
     ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle=a.tc;
     ctx.fillText(brand,cx,nameY);
-    // Thin horizontal rule below brand name
     const ruleW=minD*.28;
     const ruleY=nameY+bSize*.68;
     ctx.strokeStyle=a.tc;ctx.globalAlpha=.22;ctx.lineWidth=Math.max(1,Math.round(minD*.002));
     ctx.beginPath();ctx.moveTo(cx-ruleW/2,ruleY);ctx.lineTo(cx+ruleW/2,ruleY);ctx.stroke();
     ctx.globalAlpha=1;
     if(tagline){
-      const tSize=Math.max(10,Math.round(bSize*.36));
-      ctx.font=`${tSize}px Arial,sans-serif`;ctx.globalAlpha=.70;
+      const tSize=fitText(ctx,tagline,cw*.78,Math.max(10,Math.round(bSize*.36)),8,'');
+      ctx.globalAlpha=.70;
       const tLine=tagline.length>42?tagline.slice(0,42)+'\u2026':tagline;
       ctx.fillText(tLine,cx,ruleY+tSize*1.3);ctx.globalAlpha=1;
     }
-    // Format label — bottom centre for tall, small top-right for square
     if(isTall){
-      const lSize=Math.max(9,Math.round(minD*.04));
-      ctx.font=`700 ${lSize}px Arial,sans-serif`;
+      const lSize=fitText(ctx,a.s,cw*.6,Math.max(9,Math.round(minD*.04)),7,'700');
       ctx.textAlign='center';ctx.globalAlpha=.38;
       ctx.fillText(a.s,cx,ch*.88);ctx.globalAlpha=1;
     }
   }
 
-  /* ── 6. FORMAT LABEL (top-right corner, all formats) ── */
+  /* ── 6. FORMAT LABEL top-right (non-tall) ── */
   if(!isTall){
-    const lSz=Math.max(8,Math.round(minD*.028));
-    ctx.font=`600 ${lSz}px Arial,sans-serif`;
+    const lSz=fitText(ctx,a.s,cw*.22,Math.max(8,Math.round(minD*.028)),7,'600');
     ctx.textAlign='right';ctx.textBaseline='top';
     ctx.fillStyle=a.tc;ctx.globalAlpha=.38;
     ctx.fillText(a.s,cw-Math.round(cw*.025),barH+Math.round(ch*.018));
     ctx.globalAlpha=1;
   }
 
-  /* ── 7. DIMENSIONS WATERMARK (bottom-right) ── */
+  /* ── 7. DIMENSIONS WATERMARK bottom-right ── */
   const dSz=Math.max(7,Math.round(minD*.022));
-  ctx.font=`${dSz}px Arial,sans-serif`;
+  ctx.font=`${dSz}px ${canvasFont}`;
   ctx.textAlign='right';ctx.textBaseline='bottom';
   ctx.fillStyle=a.tc;ctx.globalAlpha=.22;
   ctx.fillText(a.d+' px',cw-Math.round(cw*.025),ch-Math.round(ch*.018));
